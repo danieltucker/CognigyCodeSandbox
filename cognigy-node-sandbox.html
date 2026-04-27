@@ -74,8 +74,7 @@
     color: var(--text2);
   }
   .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
-  .theme-toggle .icon { font-size: 13px; line-height: 1; transition: transform 0.3s; }
-  :root.light .theme-toggle .icon { transform: rotate(180deg); }
+  .theme-toggle .icon { font-size: 13px; line-height: 1; }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -885,9 +884,15 @@ function(acereq, exports) {
 
 const _editors = {};
 
+// ─── theme state (resolved before editor init) ────────────────────────────────
+const _themeKey    = 'sandbox_v1_theme';
+let   _themeMode   = localStorage.getItem(_themeKey) || 'auto';
+const _prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+function _isDark(mode) { return mode === 'auto' ? _prefersDark.matches : mode === 'dark'; }
+
 function _initEditor(id, mode, showGutter) {
   const ed = ace.edit(document.getElementById(id));
-  ed.setTheme('ace/theme/cognigy_dark');
+  ed.setTheme(_isDark(_themeMode) ? 'ace/theme/cognigy_dark' : 'ace/theme/cognigy_light');
   ed.session.setMode('ace/mode/' + mode);
   ed.setOptions({
     fontSize:           showGutter ? '12.5px' : '12px',
@@ -1255,12 +1260,30 @@ function clearAll() {
 
 // ─── theme toggle ─────────────────────────────────────────────────────────────
 
-function toggleTheme() {
-  const isLight = document.documentElement.classList.toggle('light');
-  document.getElementById('theme-label').textContent = isLight ? 'Day' : 'Night';
-  const theme = isLight ? 'ace/theme/cognigy_light' : 'ace/theme/cognigy_dark';
-  Object.values(_editors).forEach(e => e.setTheme(theme));
+const _themeIcons  = { dark: '🌙', light: '☀️', auto: '◑' };
+const _themeLabels = { dark: 'Night', light: 'Day', auto: 'Auto' };
+const _themeCycle  = { dark: 'light', light: 'auto', auto: 'dark' };
+
+function _applyTheme(mode) {
+  _themeMode = mode;
+  localStorage.setItem(_themeKey, mode);
+  const dark = _isDark(mode);
+  document.documentElement.classList.toggle('light', !dark);
+  const aceTheme = dark ? 'ace/theme/cognigy_dark' : 'ace/theme/cognigy_light';
+  Object.values(_editors).forEach(e => e.setTheme(aceTheme));
+  document.querySelector('.theme-toggle .icon').textContent = _themeIcons[mode];
+  document.getElementById('theme-label').textContent = _themeLabels[mode];
 }
+
+function toggleTheme() {
+  _applyTheme(_themeCycle[_themeMode]);
+}
+
+_prefersDark.addEventListener('change', () => {
+  if (_themeMode === 'auto') _applyTheme('auto');
+});
+
+_applyTheme(_themeMode);
 
 // ─── paste dependency scanner ────────────────────────────────────────────────
 

@@ -16,12 +16,6 @@ Add the ability to save and restore named snapshots of the full sandbox state (c
 
 ---
 
-### Auto theme mode
-
-Extend the current Night / Day toggle to include a third **Auto** option that follows the operating system's `prefers-color-scheme` preference, switching automatically when the system theme changes. The manual Night and Day overrides would remain available.
-
----
-
 ### Share via URL
 
 Encode the full sandbox state — code, input, context, and profile — into a shareable URL. Opening the URL in a browser restores the exact configuration. Intended use cases:
@@ -41,7 +35,7 @@ Connect to an LLM (configurable API key, stored in `localStorage`) to automatica
 - A plain-English summary of what the code does
 - A list of context variables it reads and writes
 - A list of input fields it depends on
-- Any side effects (api calls, profile updates, etc.)
+- Any side effects (API calls, profile updates, etc.)
 
 Useful for handing off Code Nodes to other developers or documenting an existing agent.
 
@@ -62,6 +56,12 @@ Results would appear in a new **Review** tab in the Output pane alongside the ex
 ---
 
 ## Completed
+
+### Theme persistence and Auto mode
+
+The theme toggle now cycles through three modes — **Night**, **Day**, and **Auto** — and persists the selection across page refreshes via `localStorage`. Auto mode follows the operating system's `prefers-color-scheme` preference and updates immediately when the system theme changes, with no page reload required.
+
+---
 
 ### Syntax-highlighted editors
 

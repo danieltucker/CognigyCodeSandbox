@@ -1,6 +1,6 @@
 # Cognigy Code Node Sandbox
 
-A single-file browser tool for writing, testing, and debugging Cognigy Code Node JavaScript without deploying to a live agent. Paste your code, configure the input state, run it, and inspect what changed — all locally.
+A single-file browser tool for writing, testing, and debugging Cognigy Code Node JavaScript without deploying to a live agent. Paste your code, configure the input state, run it, and inspect what changed — all in the browser, no server required.
 
 Built by **Daniel Tucker, Senior Solutions Architect — NiCE ProServ**.
 
@@ -14,15 +14,15 @@ For planned features, see [ROADMAP.md](ROADMAP.md).
 
 ## What it does
 
-Cognigy Code Nodes execute JavaScript with access to several injected objects: `api` / `actions`, `context`, `input`, `profile`, and `moment`. Testing this code normally requires a live Cognigy session with real conversation state. This sandbox simulates that environment in the browser so you can iterate quickly.
+Cognigy Code Nodes run JavaScript with access to injected objects: `api` / `actions`, `context`, `input`, `profile`, and `moment`. Normally, testing this code requires a live Cognigy session with real conversation state. This sandbox simulates that environment locally so you can iterate without deploying.
 
 **You can:**
 - Write and run Code Node JS in a syntax-highlighted editor with line numbers, bracket matching, and auto-indent
 - See every `api.addToContext()`, `setContext()`, `deleteContext()`, and `updateProfile()` call recorded and displayed
 - Inspect the full `input`, `context`, and `profile` state after execution
-- See `console.log`, `console.warn`, and `console.error` output in a dedicated console tab
+- See `console.log`, `console.warn`, and `console.error` output in a dedicated Console tab
 - Define the complete `input` object as JSON — including `input.data`, meta fields like `sessionId`, and extension results like `input.getAccountStatus`
-- Paste code and get a modal prompt if it references `context.*`, `input.data.*`, or `input.*` values not yet defined — with a one-click auto-add
+- Paste code and get a modal prompt listing any `context.*`, `input.data.*`, or `input.*` references not yet defined in the data panels — with a one-click **Auto-Add All**
 
 ---
 
@@ -164,15 +164,23 @@ The contact profile. Populated into `profile` and writable via `api.updateProfil
 
 ## Persistence
 
-All panels and the code editor save automatically to `localStorage` on every keystroke. Content is restored on page load with no manual save step.
+All panels and the code editor save to `localStorage` on every keystroke and are restored on page load — no manual save step needed.
 
-**Clear** (top bar) resets the code editor to empty and all data panels to `{}`, and removes the saved state from `localStorage`.
+**Clear** (top bar) empties the code editor, resets all data panels to `{}`, and removes the saved state from `localStorage`.
 
 ---
 
 ## Theme
 
-Click the **Night / Day** toggle in the top bar to switch between dark and light modes. Both themes use the Cognigy brand palette and apply to all editors.
+Click the theme toggle in the top bar to cycle through three modes:
+
+| Mode | Behaviour |
+|---|---|
+| **Night** 🌙 | Dark theme using the Cognigy brand palette |
+| **Day** ☀️ | Light theme using the Cognigy brand palette |
+| **Auto** ◑ | Follows the OS `prefers-color-scheme` setting, updating live when the system theme changes |
+
+The selected mode persists across page refreshes. All editors switch theme simultaneously.
 
 ---
 
@@ -187,8 +195,8 @@ Click the **Night / Day** toggle in the top bar to switch between dark and light
 
 ## Limitations
 
-- **No async/await support** — the sandbox executes code synchronously. Code that relies on `await` or returns a Promise will not behave as expected.
-- **No real HTTP calls** — `api.httpRequest()` and similar are not implemented. Simulate HTTP responses by pre-populating `input.data` in the Input panel.
+- **No async/await support** — execution is synchronous. Code using `await` or returning a `Promise` will not behave as expected.
+- **No real HTTP calls** — `api.httpRequest()` and similar are not implemented. Simulate responses by pre-populating `input.data` in the Input panel.
 - **No NLU** — intent matching, slot filling, and NLU results are not simulated.
-- **Extension node results** — results from Cognigy extension nodes (e.g., `input.getAccountStatus`) must be manually added as top-level keys in the **Input** panel.
-- **Single execution** — the sandbox runs your code once per click. Multi-turn conversation state must be set up manually between runs.
+- **Extension node results** — results from Cognigy extension nodes (e.g., `input.getAccountStatus`) must be added manually as top-level keys in the Input panel.
+- **Single execution** — the sandbox runs code once per click. Multi-turn conversation state must be set up manually between runs.

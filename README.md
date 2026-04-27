@@ -4,6 +4,8 @@ A single-file browser tool for writing, testing, and debugging Cognigy Code Node
 
 Built by **Daniel Tucker, Senior Solutions Architect — NiCE ProServ**.
 
+For planned features, see [ROADMAP.md](ROADMAP.md).
+
 ---
 
 ## What it does

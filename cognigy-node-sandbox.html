@@ -281,6 +281,22 @@
     text-transform: uppercase;
     flex: 1;
   }
+  .panel-btn {
+    background: transparent;
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    color: var(--text3);
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.06em;
+    padding: 2px 8px;
+    text-transform: uppercase;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .panel-btn:hover { border-color: var(--accent); color: var(--accent); }
+
   .json-err {
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px;
@@ -670,8 +686,8 @@
 
   /* initial section proportions */
   #section-input   { flex: 2; }
-  #section-context { flex: 1; }
-  #section-profile { flex: 0.8; }
+  #section-context { flex: 3; }
+  #section-profile { flex: 0.4; }
 </style>
 </head>
 <body>
@@ -724,6 +740,7 @@
         <div class="json-section-header">
           <span class="json-section-label">input</span>
           <span class="json-err" id="err-input">invalid json</span>
+          <button class="panel-btn" onclick="generateSessionIds()" title="Generate UUIDs for userId and sessionId if missing or null">Gen IDs</button>
         </div>
         <div id="json-input" class="ace-editor-container"></div>
       </div>
@@ -1257,6 +1274,17 @@ function clearAll() {
   setStatus('idle', 'Idle');
   document.querySelectorAll('.out-tab').forEach((t,i) => t.classList.toggle('active', i===0));
   document.querySelectorAll('.tab-content').forEach((t,i) => t.classList.toggle('active', i===0));
+}
+
+// ─── generate session IDs ─────────────────────────────────────────────────────
+
+function generateSessionIds() {
+  let obj;
+  try { obj = JSON.parse(getEditorValue('json-input')); } catch { obj = {}; }
+  let changed = false;
+  if (obj.userId == null) { obj.userId = crypto.randomUUID(); changed = true; }
+  if (obj.sessionId == null) { obj.sessionId = crypto.randomUUID(); changed = true; }
+  if (changed) setEditorValue('json-input', JSON.stringify(obj, null, 2));
 }
 
 // ─── theme toggle ─────────────────────────────────────────────────────────────

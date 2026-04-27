@@ -8,12 +8,17 @@ For planned features, see [ROADMAP.md](ROADMAP.md).
 
 ---
 
+![App overview](images/app-view.png)
+
+---
+
 ## What it does
 
 Cognigy Code Nodes execute JavaScript with access to several injected objects: `api` / `actions`, `context`, `input`, `profile`, and `moment`. Testing this code normally requires a live Cognigy session with real conversation state. This sandbox simulates that environment in the browser so you can iterate quickly.
 
 **You can:**
-- Run Code Node JS and see every `api.addToContext()`, `setContext()`, `deleteContext()`, and `updateProfile()` call recorded and displayed
+- Write and run Code Node JS in a syntax-highlighted editor with line numbers, bracket matching, and auto-indent
+- See every `api.addToContext()`, `setContext()`, `deleteContext()`, and `updateProfile()` call recorded and displayed
 - Inspect the full `input`, `context`, and `profile` state after execution
 - See `console.log`, `console.warn`, and `console.error` output in a dedicated console tab
 - Define the complete `input` object as JSON — including `input.data`, meta fields like `sessionId`, and extension results like `input.getAccountStatus`
@@ -27,17 +32,30 @@ Open `cognigy-node-sandbox.html` directly in a browser. No build step, no server
 
 ### Layout
 
-The workspace is split into three panes:
+The workspace is split into three resizable panes:
 
 | Pane | Purpose |
 |---|---|
-| **Code Node** | Paste or write your Code Node JavaScript here |
+| **Code Node** | Write or paste your Code Node JavaScript here |
 | **Data** | Set the runtime state: `input`, `context`, and `profile` |
 | **Output** | View context writes, console output, and full post-run state |
+
+Drag the dividers between panes to resize them horizontally. Drag the **Context** or **Profile** section headers in the Data pane to resize those panels vertically.
 
 ### Running code
 
 Click **Run** or press `⌘ Enter` (Mac) / `Ctrl Enter` (Windows/Linux).
+
+### Code editor
+
+The Code Node pane uses an embedded [Ace Editor](https://ace.c9.io/) with:
+
+- JavaScript syntax highlighting
+- Line numbers and active-line highlight
+- Bracket matching and auto-indent
+- Soft tabs (2 spaces)
+
+The three data panels (input, context, profile) also use Ace in JSON mode, with keys, string values, numbers, and booleans each colored distinctly.
 
 ### Available globals
 
@@ -79,11 +97,17 @@ Click **Run** or press `⌘ Enter` (Mac) / `Ctrl Enter` (Windows/Linux).
 - **Console** — all `console.*` output and `api.*` side-effect calls
 - **Full State** — the complete `input`, `context`, and `profile` objects as they exist after the run
 
+Runtime errors are surfaced in both the Context Writes and Console tabs with the full error message.
+
+![Error handling](images/error-handling.png)
+
 ---
 
 ## Paste detection
 
 When you paste code into the editor, the sandbox scans it for references to `context.*`, `input.data.*`, and `input.*` values that don't exist in the current data panels. If any are missing, a modal appears listing them with a single **Auto-Add All** button that inserts `null` placeholders at the correct paths.
+
+![Variable detection modal](images/variable-detection.png)
 
 Detection covers:
 - `context.foo`, `context?.foo?.bar`, `context['key']`
@@ -142,13 +166,13 @@ The contact profile. Populated into `profile` and writable via `api.updateProfil
 
 All panels and the code editor save automatically to `localStorage` on every keystroke. Content is restored on page load with no manual save step.
 
-**Clear** (top bar) wipes all editors — code, input, context, and profile — and removes the saved state from `localStorage`, returning everything to a blank state.
+**Clear** (top bar) resets the code editor to empty and all data panels to `{}`, and removes the saved state from `localStorage`.
 
 ---
 
 ## Theme
 
-Click the **Night / Day** toggle in the top bar to switch between dark and light modes. Both themes use the Cognigy brand palette.
+Click the **Night / Day** toggle in the top bar to switch between dark and light modes. Both themes use the Cognigy brand palette and apply to all editors.
 
 ---
 
@@ -157,7 +181,7 @@ Click the **Night / Day** toggle in the top bar to switch between dark and light
 | Shortcut | Action |
 |---|---|
 | `⌘ Enter` / `Ctrl Enter` | Run code |
-| `Tab` (in code editor) | Insert 2 spaces |
+| `Tab` | Indent (handled natively by the editor) |
 
 ---
 

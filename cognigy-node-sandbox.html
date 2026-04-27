@@ -7,6 +7,9 @@
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;0,700;1,400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/ace.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/mode-javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/mode-json.min.js"></script>
 <style>
   :root {
     /* ── Cognigy dark theme ─────────────────────────────────── */
@@ -230,31 +233,24 @@
 
   .pane-body {
     flex: 1;
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
     position: relative;
     min-height: 0;
   }
 
-  /* ── editor pane (code) ── */
-  .code-editor {
+  /* ── Ace editor containers ── */
+  .ace-editor-container {
+    flex: 1;
     width: 100%;
-    height: 100%;
-    background: var(--bg);
-    border: none;
-    color: var(--code-color);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12.5px;
-    line-height: 1.7;
-    outline: none;
-    padding: 16px;
-    resize: none;
-    tab-size: 2;
-    white-space: pre;
-    overflow: auto;
+    min-height: 0;
+    overflow: hidden;
+    position: relative;
   }
-  .code-editor::placeholder { color: var(--text3); }
-  .code-editor::-webkit-scrollbar { width: 5px; height: 5px; }
-  .code-editor::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+  /* Ace global overrides — keep scrollbars consistent */
+  .ace_scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+  .ace_scrollbar::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
 
   /* ── json pane ── */
   .json-section {
@@ -290,25 +286,6 @@
     color: var(--red);
     display: none;
   }
-  .json-editor {
-    flex: 1;
-    width: 100%;
-    background: var(--bg);
-    border: none;
-    color: var(--json-color);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    line-height: 1.65;
-    outline: none;
-    padding: 14px 16px;
-    resize: none;
-    overflow: auto;
-    min-height: 0;
-  }
-  .json-editor::placeholder { color: var(--text3); }
-  .json-editor::-webkit-scrollbar { width: 5px; }
-  .json-editor::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
-
   /* ── output pane ── */
   .output-pane {
     background: var(--bg);
@@ -725,19 +702,10 @@
   <div class="pane" id="pane-code">
     <div class="pane-header">
       <div class="pane-icon purple"></div>
-      <span class="pane-label">Code Node &nbsp;— paste JS here</span>
+      <span class="pane-label">Code Node</span>
     </div>
     <div class="pane-body">
-      <textarea class="code-editor" id="code-editor" spellcheck="false" placeholder="// Paste your Cognigy Code Node JavaScript here
-// api.addToContext(), context, input, and profile are all available
-
-const ewt = Math.ceil(
-  ((input?.data?.request?.estimatedWaitTime ?? 0) / (1000 * 60))
-);
-
-api.addToContext('ewtMinutes', ewt, 'simple');
-api.addToContext('test', 'Hello from the sandbox!', 'simple');
-"></textarea>
+      <div id="code-editor" class="ace-editor-container"></div>
     </div>
   </div>
 
@@ -757,7 +725,7 @@ api.addToContext('test', 'Hello from the sandbox!', 'simple');
           <span class="json-section-label">input</span>
           <span class="json-err" id="err-input">invalid json</span>
         </div>
-        <textarea class="json-editor" id="json-input" spellcheck="false" placeholder="{}"></textarea>
+        <div id="json-input" class="ace-editor-container"></div>
       </div>
 
       <!-- context -->
@@ -767,7 +735,7 @@ api.addToContext('test', 'Hello from the sandbox!', 'simple');
           <span class="json-err" id="err-context">invalid json</span>
           <div class="resize-grip"><span></span><span></span><span></span></div>
         </div>
-        <textarea class="json-editor" id="json-context" spellcheck="false" placeholder="{}"></textarea>
+        <div id="json-context" class="ace-editor-container"></div>
       </div>
 
       <!-- profile -->
@@ -777,8 +745,7 @@ api.addToContext('test', 'Hello from the sandbox!', 'simple');
           <span class="json-err" id="err-profile">invalid json</span>
           <div class="resize-grip"><span></span><span></span><span></span></div>
         </div>
-        <textarea class="json-editor" id="json-profile" spellcheck="false" placeholder="{}">{}
-</textarea>
+        <div id="json-profile" class="ace-editor-container"></div>
       </div>
 
     </div>
@@ -857,10 +824,104 @@ api.addToContext('test', 'Hello from the sandbox!', 'simple');
 </div>
 
 <script>
+// ─── Ace Editor setup ────────────────────────────────────────────────────────
+
+ace.config.set('useWorker', false);
+
+ace.define('ace/theme/cognigy_dark', ['require','exports','module','ace/lib/dom'],
+function(acereq, exports) {
+  exports.isDark   = true;
+  exports.cssClass = 'ace-cognigy-dark';
+  exports.cssText  = `
+.ace-cognigy-dark                                    { background:#0b0c0e; color:#d7d7d7; }
+.ace-cognigy-dark .ace_gutter                        { background:#14151a; color:#3d4048; border-right:1px solid #2d2f33; }
+.ace-cognigy-dark .ace_scroller                      { background:#0b0c0e; }
+.ace-cognigy-dark .ace_cursor                        { color:#9341fb; border-left-color:#9341fb; }
+.ace-cognigy-dark .ace_marker-layer .ace_selection   { background:rgba(147,65,251,0.18); }
+.ace-cognigy-dark .ace_marker-layer .ace_active-line { background:rgba(255,255,255,0.025); }
+.ace-cognigy-dark .ace_gutter-active-line            { background:rgba(255,255,255,0.04); }
+.ace-cognigy-dark .ace_indent-guide                  { border-left:1px solid #1e2024; }
+.ace-cognigy-dark .ace_indent-guide-active           { border-left:1px solid #3c3c3d; }
+.ace-cognigy-dark .ace_keyword                       { color:#c3a7f5; }
+.ace-cognigy-dark .ace_keyword.ace_operator          { color:#78787a; }
+.ace-cognigy-dark .ace_string                        { color:#6ae1a1; }
+.ace-cognigy-dark .ace_constant.ace_numeric          { color:#da622b; }
+.ace-cognigy-dark .ace_constant.ace_language         { color:#c3a7f5; }
+.ace-cognigy-dark .ace_comment                       { color:#3d4048; font-style:italic; }
+.ace-cognigy-dark .ace_variable                      { color:#9341fb; }
+.ace-cognigy-dark .ace_entity.ace_name.ace_function  { color:#c3a7f5; }
+.ace-cognigy-dark .ace_support.ace_function          { color:#9341fb; }
+.ace-cognigy-dark .ace_paren                         { color:#78787a; }
+`;
+  acereq('ace/lib/dom').importCssString(exports.cssText, exports.cssClass + '-css');
+});
+
+ace.define('ace/theme/cognigy_light', ['require','exports','module','ace/lib/dom'],
+function(acereq, exports) {
+  exports.isDark   = false;
+  exports.cssClass = 'ace-cognigy-light';
+  exports.cssText  = `
+.ace-cognigy-light                                    { background:#f7f7f8; color:#0b0c0e; }
+.ace-cognigy-light .ace_gutter                        { background:#f5f4fb; color:#a0a0ab; border-right:1px solid #e9e9ea; }
+.ace-cognigy-light .ace_scroller                      { background:#f7f7f8; }
+.ace-cognigy-light .ace_cursor                        { color:#4a0d8f; border-left-color:#4a0d8f; }
+.ace-cognigy-light .ace_marker-layer .ace_selection   { background:rgba(74,13,143,0.12); }
+.ace-cognigy-light .ace_marker-layer .ace_active-line { background:rgba(0,0,0,0.025); }
+.ace-cognigy-light .ace_gutter-active-line            { background:rgba(0,0,0,0.04); }
+.ace-cognigy-light .ace_indent-guide                  { border-left:1px solid #e9e9ea; }
+.ace-cognigy-light .ace_keyword                       { color:#4a0d8f; }
+.ace-cognigy-light .ace_keyword.ace_operator          { color:#595960; }
+.ace-cognigy-light .ace_string                        { color:#166e3f; }
+.ace-cognigy-light .ace_constant.ace_numeric          { color:#ae590a; }
+.ace-cognigy-light .ace_constant.ace_language         { color:#4a0d8f; }
+.ace-cognigy-light .ace_comment                       { color:#a0a0ab; font-style:italic; }
+.ace-cognigy-light .ace_variable                      { color:#4a0d8f; }
+.ace-cognigy-light .ace_entity.ace_name.ace_function  { color:#2e0459; }
+.ace-cognigy-light .ace_support.ace_function          { color:#4a0d8f; }
+.ace-cognigy-light .ace_paren                         { color:#595960; }
+`;
+  acereq('ace/lib/dom').importCssString(exports.cssText, exports.cssClass + '-css');
+});
+
+const _editors = {};
+
+function _initEditor(id, mode, showGutter) {
+  const ed = ace.edit(document.getElementById(id));
+  ed.setTheme('ace/theme/cognigy_dark');
+  ed.session.setMode('ace/mode/' + mode);
+  ed.setOptions({
+    fontSize:           showGutter ? '12.5px' : '12px',
+    fontFamily:         "'JetBrains Mono', monospace",
+    showPrintMargin:    false,
+    highlightActiveLine: true,
+    showGutter:         showGutter,
+    showLineNumbers:    showGutter,
+    tabSize:            2,
+    useSoftTabs:        true,
+    scrollPastEnd:      0.1,
+  });
+  ed.renderer.setPadding(14);
+  ed.renderer.setScrollMargin(10, 10, 0, 0);
+  _editors[id] = ed;
+  return ed;
+}
+
+_initEditor('code-editor', 'javascript', true);
+_initEditor('json-input',   'json', false);
+_initEditor('json-context', 'json', false);
+_initEditor('json-profile', 'json', false);
+
+function getEditorValue(id) {
+  return _editors[id] ? _editors[id].getValue() : '';
+}
+function setEditorValue(id, val) {
+  if (_editors[id]) _editors[id].setValue(val, -1);
+}
+
 // ─── parse helpers ───────────────────────────────────────────────────────────
 
 function parseJson(id, errId) {
-  const raw = document.getElementById(id).value.trim();
+  const raw = getEditorValue(id).trim();
   const errEl = document.getElementById(errId);
   if (!raw || raw === '{}' || raw === '') {
     errEl.style.display = 'none';
@@ -879,9 +940,7 @@ function parseJson(id, errId) {
 // live JSON validation
 ['json-input','json-context','json-profile'].forEach((id, i) => {
   const errIds = ['err-input','err-context','err-profile'];
-  document.getElementById(id).addEventListener('input', () => {
-    parseJson(id, errIds[i]);
-  });
+  _editors[id].on('change', () => parseJson(id, errIds[i]));
 });
 
 // ─── localStorage persistence ─────────────────────────────────────────────────
@@ -896,14 +955,12 @@ const _storageKeys = {
 (function restoreFromStorage() {
   Object.entries(_storageKeys).forEach(([id, key]) => {
     const saved = localStorage.getItem(key);
-    if (saved !== null) document.getElementById(id).value = saved;
+    if (saved !== null) setEditorValue(id, saved);
   });
 })();
 
 Object.entries(_storageKeys).forEach(([id, key]) => {
-  document.getElementById(id).addEventListener('input', () => {
-    localStorage.setItem(key, document.getElementById(id).value);
-  });
+  _editors[id].on('change', () => localStorage.setItem(key, getEditorValue(id)));
 });
 
 // ─── deep set helper (for api.addToContext dotted paths) ─────────────────────
@@ -937,7 +994,7 @@ function deepDelete(obj, path) {
 // ─── run ─────────────────────────────────────────────────────────────────────
 
 function runCode() {
-  const code = document.getElementById('code-editor').value.trim();
+  const code = getEditorValue('code-editor').trim();
   if (!code) return;
 
   setStatus('running', 'Running...');
@@ -1179,11 +1236,10 @@ function switchOutTab(btn, tabId) {
 }
 
 function clearAll() {
-  // Clear editors
-  document.getElementById('code-editor').value = '';
-  document.getElementById('json-input').value = '{}';
-  document.getElementById('json-context').value = '{}';
-  document.getElementById('json-profile').value = '{}';
+  setEditorValue('code-editor', '');
+  setEditorValue('json-input',   '{}');
+  setEditorValue('json-context', '{}');
+  setEditorValue('json-profile', '{}');
 
   // Clear localStorage
   Object.values(_storageKeys).forEach(key => localStorage.removeItem(key));
@@ -1202,16 +1258,18 @@ function clearAll() {
 function toggleTheme() {
   const isLight = document.documentElement.classList.toggle('light');
   document.getElementById('theme-label').textContent = isLight ? 'Day' : 'Night';
+  const theme = isLight ? 'ace/theme/cognigy_light' : 'ace/theme/cognigy_dark';
+  Object.values(_editors).forEach(e => e.setTheme(theme));
 }
 
 // ─── paste dependency scanner ────────────────────────────────────────────────
 
 let _pendingDeps = null;
 
-document.getElementById('code-editor').addEventListener('paste', () => {
+_editors['code-editor'].on('paste', () => {
   setTimeout(() => {
-    const code = document.getElementById('code-editor').value;
-    const deps = scanCodeForDependencies(code);
+    const code    = getEditorValue('code-editor');
+    const deps    = scanCodeForDependencies(code);
     const missing = findMissingDependencies(deps);
     if (missing.context.length || missing.inputData.length || missing.inputMeta.length) {
       _pendingDeps = missing;
@@ -1221,7 +1279,7 @@ document.getElementById('code-editor').addEventListener('paste', () => {
 });
 
 function parseJsonSilent(id) {
-  const raw = document.getElementById(id).value.trim();
+  const raw = getEditorValue(id).trim();
   if (!raw || raw === '{}') return {};
   try { return JSON.parse(raw); } catch { return {}; }
 }
@@ -1318,18 +1376,14 @@ function handleModalOverlayClick(e) {
 function autoAddDependencies() {
   if (!_pendingDeps) return;
 
-  // Context
   if (_pendingDeps.context.length) {
-    const el = document.getElementById('json-context');
     const obj = parseJsonSilent('json-context');
     _pendingDeps.context.forEach(p => { if (deepGet(obj, p) === undefined) deepSet(obj, p, null); });
-    el.value = JSON.stringify(obj, null, 2);
+    setEditorValue('json-context', JSON.stringify(obj, null, 2));
     parseJson('json-context', 'err-context');
   }
 
-  // Input — data.* paths and meta paths both go into json-input
   if (_pendingDeps.inputData.length || _pendingDeps.inputMeta.length) {
-    const el = document.getElementById('json-input');
     const obj = parseJsonSilent('json-input');
     _pendingDeps.inputData.forEach(p => {
       const full = `data.${p}`;
@@ -1338,7 +1392,7 @@ function autoAddDependencies() {
     _pendingDeps.inputMeta.forEach(p => {
       if (deepGet(obj, p) === undefined) deepSet(obj, p, null);
     });
-    el.value = JSON.stringify(obj, null, 2);
+    setEditorValue('json-input', JSON.stringify(obj, null, 2));
     parseJson('json-input', 'err-input');
   }
 
@@ -1369,6 +1423,7 @@ function autoAddDependencies() {
         const newLeft = Math.max(140, Math.min(total - 140, startLeft + dx));
         leftPane.style.flex  = `0 0 ${newLeft}px`;
         rightPane.style.flex = `0 0 ${total - newLeft}px`;
+        Object.values(_editors).forEach(ed => ed.resize());
       }
       function onUp() {
         divEl.classList.remove('active');
@@ -1410,6 +1465,7 @@ function autoAddDependencies() {
         const newTop = Math.max(60, Math.min(total - 60, startTop + dy));
         topSec.style.flex = `0 0 ${newTop}px`;
         botSec.style.flex = `0 0 ${total - newTop}px`;
+        Object.values(_editors).forEach(ed => ed.resize());
       }
       function onUp() {
         handleEl.classList.remove('resizing');
@@ -1433,15 +1489,7 @@ document.addEventListener('keydown', e => {
     e.preventDefault();
     runCode();
   }
-  // Tab key in code editor inserts spaces instead of changing focus
-  if (e.key === 'Tab' && document.activeElement.id === 'code-editor') {
-    e.preventDefault();
-    const ta = document.activeElement;
-    const start = ta.selectionStart;
-    const end = ta.selectionEnd;
-    ta.value = ta.value.substring(0, start) + '  ' + ta.value.substring(end);
-    ta.selectionStart = ta.selectionEnd = start + 2;
-  }
+  // Tab/indent handled natively by Ace
 });
 </script>
 </body>

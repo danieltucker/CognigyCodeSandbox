@@ -6,18 +6,6 @@ Planned features for the Cognigy Code Node Sandbox. Items are listed roughly in 
 
 ## Planned
 
-### Syntax-highlighted code editor
-
-Replace the plain `<textarea>` in the Code Node pane with a minimal embedded editor (e.g. CodeMirror or Monaco) that provides:
-
-- JavaScript syntax highlighting
-- Basic bracket matching and auto-indent
-- Line numbers
-
-The editor must remain zero-dependency from the user's perspective — bundled or CDN-loaded as a single additional script tag, with no build step required.
-
----
-
 ### Named state saves
 
 Add the ability to save and restore named snapshots of the full sandbox state (code, input, context, and profile). Currently only a single state is persisted to `localStorage`. Named saves would allow:
@@ -75,4 +63,10 @@ Results would appear in a new **Review** tab in the Output pane alongside the ex
 
 ## Completed
 
-See [README.md](README.md) for the current feature set.
+### Syntax-highlighted editors
+
+The Code Node pane and all three data panels (input, context, profile) use [Ace Editor](https://ace.c9.io/) loaded via CDN — no build step required.
+
+The code editor provides JavaScript syntax highlighting, line numbers, active-line highlight, bracket matching, and auto-indent. The JSON panels provide syntax coloring with keys, string values, numbers, and booleans each styled distinctly using the Cognigy brand palette. Both dark and light themes apply to all editor instances simultaneously.
+
+See [README.md](README.md) for the full current feature set.

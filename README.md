@@ -14,8 +14,8 @@ Cognigy Code Nodes execute JavaScript with access to several injected objects: `
 - Run Code Node JS and see every `api.addToContext()`, `setContext()`, `deleteContext()`, and `updateProfile()` call recorded and displayed
 - Inspect the full `input`, `context`, and `profile` state after execution
 - See `console.log`, `console.warn`, and `console.error` output in a dedicated console tab
-- Configure `input.data`, `context`, `profile`, and `input` meta fields (sessionId, userId, flowName, etc.) as JSON before running
-- Paste code and get a modal prompt if it references `context.*`, `input.data.*`, or `input.*` values not yet defined in your data panels — with a one-click auto-add
+- Define the complete `input` object as JSON — including `input.data`, meta fields like `sessionId`, and extension results like `input.getAccountStatus`
+- Paste code and get a modal prompt if it references `context.*`, `input.data.*`, or `input.*` values not yet defined — with a one-click auto-add
 
 ---
 
@@ -30,7 +30,7 @@ The workspace is split into three panes:
 | Pane | Purpose |
 |---|---|
 | **Code Node** | Paste or write your Code Node JavaScript here |
-| **Data** | Set the input state: `input.data`, `context`, `profile`, and `input` meta fields |
+| **Data** | Set the runtime state: `input`, `context`, and `profile` |
 | **Output** | View context writes, console output, and full post-run state |
 
 ### Running code
@@ -44,7 +44,7 @@ Click **Run** or press `⌘ Enter` (Mac) / `Ctrl Enter` (Windows/Linux).
 | `api` | Cognigy API object (same as `actions`) |
 | `actions` | Alias for `api` — paste real Code Node JS without renaming |
 | `context` | Mutable context object, pre-populated from the Context panel |
-| `input` | Input object, built from the meta fields panel + `input.data` |
+| `input` | The complete input object, built from the Input panel |
 | `profile` | Contact profile object, pre-populated from the Profile panel |
 | `moment` | [Moment.js](https://momentjs.com/) 2.30 |
 | `_` | [Lodash](https://lodash.com/) 4.17 |
@@ -95,17 +95,24 @@ After auto-adding, edit the placeholder values in the data panels before running
 
 ## Data panels
 
-### input.data
-The payload delivered to the flow — equivalent to `input.data` in a live agent. Typically contains webhook request bodies, API responses injected via HTTP nodes, or channel-specific data.
+### input
 
-### context (initial state)
-The context object as it exists when the Code Node begins executing. Set any context variables your code reads here.
+The complete `input` object as it will exist when your code runs. Define any combination of fields in a single JSON object:
 
-### profile
-The contact profile. Populated into `profile` and writable via `api.updateProfile()`.
+```json
+{
+  "text": "hello",
+  "sessionId": "sandbox-session-001",
+  "data": {
+    "request": { "estimatedWaitTime": 420000 }
+  },
+  "getAccountStatus": {
+    "result": { "account": { "accountId": "12345" } }
+  }
+}
+```
 
-### input (meta fields)
-Standard Cognigy input fields that aren't part of `input.data`:
+Fields not specified fall back to these defaults at run time:
 
 | Field | Default |
 |---|---|
@@ -114,17 +121,26 @@ Standard Cognigy input fields that aren't part of `input.data`:
 | `userId` | `sandbox-user-001` |
 | `flowName` | `Main Flow` |
 | `URLToken` | `dev` |
-| `currentTime` | Auto-set to current time at run |
+| `currentTime` | Auto-set to current time |
+| `data` | `{}` |
 
-Add extension result namespaces here (e.g., `getAccountStatus`) to simulate data placed on `input` by preceding extension nodes.
+Any field you define overrides its default. Use the `data` key for webhook payloads and HTTP node responses. Use top-level keys to simulate extension node results (e.g., `getAccountStatus`, `getOrderStatus`).
+
+### context
+
+The context object as it exists when the Code Node begins executing. Set any context variables your code reads here.
+
+### profile
+
+The contact profile. Populated into `profile` and writable via `api.updateProfile()`.
 
 ---
 
 ## Persistence
 
-All four data panels and the code editor are automatically saved to `localStorage`. Content is restored on page load. There is no manual save step.
+All panels and the code editor save automatically to `localStorage` on every keystroke. Content is restored on page load with no manual save step.
 
-To clear saved state, open your browser's DevTools → Application → Local Storage and remove the `sandbox_v1_*` keys.
+**Clear** (top bar) wipes all editors — code, input, context, and profile — and removes the saved state from `localStorage`, returning everything to a blank state.
 
 ---
 
@@ -146,7 +162,7 @@ Click the **Night / Day** toggle in the top bar to switch between dark and light
 ## Limitations
 
 - **No async/await support** — the sandbox executes code synchronously. Code that relies on `await` or returns a Promise will not behave as expected.
-- **No real HTTP calls** — `api.httpRequest()` and similar are not implemented. Simulate HTTP responses by pre-populating `input.data` or `context`.
+- **No real HTTP calls** — `api.httpRequest()` and similar are not implemented. Simulate HTTP responses by pre-populating `input.data` in the Input panel.
 - **No NLU** — intent matching, slot filling, and NLU results are not simulated.
-- **Extension node results** — results from Cognigy extension nodes (e.g., `input.getAccountStatus`) must be manually added to the **input (meta fields)** panel.
+- **Extension node results** — results from Cognigy extension nodes (e.g., `input.getAccountStatus`) must be manually added as top-level keys in the **Input** panel.
 - **Single execution** — the sandbox runs your code once per click. Multi-turn conversation state must be set up manually between runs.

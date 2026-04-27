@@ -6,50 +6,53 @@
 <title>Cognigy Code Node Sandbox</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;0,700;1,400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
 <style>
   :root {
-    --bg: #07080b;
-    --surface: #0e1016;
-    --surface2: #13151d;
-    --surface3: #1a1d28;
-    --border: #1f2233;
-    --border2: #2a2e42;
-    --accent: #7c6dfa;
-    --accent-glow: rgba(124,109,250,0.2);
-    --green: #00d68f;
-    --green-dim: rgba(0,214,143,0.12);
-    --red: #ff4d6a;
-    --red-dim: rgba(255,77,106,0.12);
-    --yellow: #ffb830;
-    --yellow-dim: rgba(255,184,48,0.12);
-    --text: #d8dce8;
-    --text2: #8890a8;
-    --text3: #454d66;
+    /* ── Cognigy dark theme ─────────────────────────────────── */
+    --bg: #0b0c0e;
+    --surface: #14151a;
+    --surface2: #191a1b;
+    --surface3: #222526;
+    --border: #2d2f33;
+    --border2: #3c3c3d;
+    --accent: #9341fb;
+    --accent-glow: rgba(147,65,251,0.22);
+    --green: #6ae1a1;
+    --green-dim: rgba(106,225,161,0.12);
+    --red: #e6483d;
+    --red-dim: rgba(230,72,61,0.12);
+    --yellow: #da622b;
+    --yellow-dim: rgba(218,98,43,0.12);
+    --text: #d7d7d7;
+    --text2: #78787a;
+    --text3: #52525c;
     --radius: 10px;
-    --code-color: #c9d1e8;
-    --json-color: #4a9f6e;
+    --code-color: #c3a7f5;
+    --json-color: #6ae1a1;
   }
 
   :root.light {
-    --bg: #f4f5f7;
+    /* ── Cognigy light theme ────────────────────────────────── */
+    --bg: #f7f7f8;
     --surface: #ffffff;
-    --surface2: #f0f1f4;
-    --surface3: #e6e8ee;
-    --border: #dde0e8;
-    --border2: #c8ccda;
-    --accent: #6355e0;
-    --accent-glow: rgba(99,85,224,0.15);
-    --green: #00a86b;
-    --green-dim: rgba(0,168,107,0.1);
-    --red: #e8334a;
-    --red-dim: rgba(232,51,74,0.08);
-    --yellow: #d4820a;
-    --yellow-dim: rgba(212,130,10,0.1);
-    --text: #1a1d2e;
-    --text2: #4a5068;
-    --text3: #9098b0;
-    --code-color: #2d3250;
-    --json-color: #1a7a48;
+    --surface2: #f5f4fb;
+    --surface3: #ece8f5;
+    --border: #e9e9ea;
+    --border2: #d4d4d8;
+    --accent: #4a0d8f;
+    --accent-glow: rgba(74,13,143,0.15);
+    --green: #166e3f;
+    --green-dim: rgba(22,110,63,0.1);
+    --red: #9a1c13;
+    --red-dim: rgba(154,28,19,0.08);
+    --yellow: #ae590a;
+    --yellow-dim: rgba(174,89,10,0.1);
+    --text: #0b0c0e;
+    --text2: #595960;
+    --text3: #a0a0ab;
+    --code-color: #2e0459;
+    --json-color: #166e3f;
   }
 
   /* ── theme toggle ── */
@@ -513,6 +516,137 @@
     padding: 1px 6px;
     color: var(--text3);
   }
+
+  /* ── paste dependency modal ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.15s ease;
+  }
+  .modal-box {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 14px;
+    width: 480px;
+    max-width: 90vw;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(124,109,250,0.08);
+    overflow: hidden;
+  }
+  .modal-header {
+    padding: 20px 22px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .modal-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .modal-title-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--yellow);
+    flex-shrink: 0;
+  }
+  .modal-subtitle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text2);
+    line-height: 1.6;
+  }
+  .modal-body {
+    padding: 16px 22px;
+    overflow-y: auto;
+    flex: 1;
+  }
+  .modal-body::-webkit-scrollbar { width: 4px; }
+  .modal-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+  .modal-section { margin-bottom: 14px; }
+  .modal-section:last-child { margin-bottom: 0; }
+  .modal-section-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 6px;
+  }
+  .modal-path-list { display: flex; flex-direction: column; gap: 4px; }
+  .modal-path-item {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+  }
+  .modal-path-prefix { color: var(--text3); flex-shrink: 0; }
+  .modal-path-key { color: var(--accent); flex: 1; }
+  .modal-path-badge {
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: var(--yellow-dim);
+    color: var(--yellow);
+    border: 1px solid rgba(255,184,48,0.2);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-left: 8px;
+  }
+  .modal-footer {
+    padding: 14px 22px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    align-items: center;
+  }
+  .modal-footer-hint {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+    flex: 1;
+  }
+  .modal-btn-dismiss {
+    background: transparent;
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    color: var(--text2);
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 7px 16px;
+    transition: all 0.15s;
+  }
+  .modal-btn-dismiss:hover { border-color: var(--text2); color: var(--text); }
+  .modal-btn-add {
+    background: var(--accent);
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    cursor: pointer;
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 7px 18px;
+    transition: opacity 0.15s, box-shadow 0.15s;
+  }
+  .modal-btn-add:hover { opacity: 0.88; box-shadow: 0 0 20px var(--accent-glow); }
 </style>
 </head>
 <body>
@@ -573,12 +707,7 @@ api.addToContext('test', 'Hello from the sandbox!', 'simple');
           <span class="json-section-label">input.data</span>
           <span class="json-err" id="err-input">invalid json</span>
         </div>
-        <textarea class="json-editor" id="json-input" spellcheck="false" placeholder='{ "request": { "estimatedWaitTime": 420000, "position": 5 } }'>{
-  "request": {
-    "estimatedWaitTime": 420000,
-    "position": 5
-  }
-}</textarea>
+        <textarea class="json-editor" id="json-input" spellcheck="false" placeholder='{ "request": { "estimatedWaitTime": 420000, "position": 5 } }'></textarea>
       </div>
 
       <!-- context -->
@@ -587,11 +716,7 @@ api.addToContext('test', 'Hello from the sandbox!', 'simple');
           <span class="json-section-label">context (initial state)</span>
           <span class="json-err" id="err-context">invalid json</span>
         </div>
-        <textarea class="json-editor" id="json-context" spellcheck="false" placeholder='{ "configuration": { "env": "dev" } }'>{
-  "configuration": {
-    "env": "dev"
-  }
-}</textarea>
+        <textarea class="json-editor" id="json-context" spellcheck="false" placeholder='{ "configuration": { "env": "dev" } }'></textarea>
       </div>
 
       <!-- profile -->
@@ -615,8 +740,7 @@ api.addToContext('test', 'Hello from the sandbox!', 'simple');
   "sessionId": "sandbox-session-001",
   "userId": "sandbox-user-001",
   "flowName": "Main Flow",
-  "URLToken": "dev",
-  "currentTime": { "plain": "2026-04-27T10:00:00Z" }
+  "URLToken": "dev"
 }</textarea>
       </div>
 
@@ -648,7 +772,7 @@ api.addToContext('test', 'Hello from the sandbox!', 'simple');
             Console <span class="badge" id="badge-console">0</span>
           </button>
           <button class="out-tab" onclick="switchOutTab(this,'tab-state')" id="tab-btn-state">
-            Full Context
+            Full State
           </button>
         </div>
 
@@ -661,7 +785,9 @@ api.addToContext('test', 'Hello from the sandbox!', 'simple');
         </div>
 
         <div class="tab-content" id="tab-state">
-          <div class="out-section-title">context after run</div>
+          <div class="out-section-title">input (constructed)</div>
+          <div class="ctx-viewer"><pre id="input-state-pre">{}</pre></div>
+          <div class="out-section-title" style="margin-top:16px">context after run</div>
           <div class="ctx-viewer"><pre id="ctx-state-pre">{}</pre></div>
           <div class="out-section-title" style="margin-top:16px">profile after run</div>
           <div class="ctx-viewer"><pre id="profile-state-pre">{}</pre></div>
@@ -670,6 +796,25 @@ api.addToContext('test', 'Hello from the sandbox!', 'simple');
     </div>
   </div>
 
+</div>
+
+<!-- PASTE DEPENDENCY MODAL -->
+<div id="paste-modal-overlay" class="modal-overlay" style="display:none" onclick="handleModalOverlayClick(event)">
+  <div class="modal-box" id="paste-modal-box">
+    <div class="modal-header">
+      <div class="modal-title">
+        <span class="modal-title-dot"></span>
+        Missing Dependencies Detected
+      </div>
+      <div class="modal-subtitle">The pasted code references values that aren't defined in your data panels. Would you like to auto-add them as <code style="color:var(--accent);background:var(--surface3);padding:1px 5px;border-radius:3px;font-size:10px">null</code> placeholders?</div>
+    </div>
+    <div class="modal-body" id="paste-modal-body"></div>
+    <div class="modal-footer">
+      <span class="modal-footer-hint">Values will be added as <code style="color:var(--accent);background:var(--surface3);padding:1px 4px;border-radius:3px;font-size:9px">null</code> — edit before running.</span>
+      <button class="modal-btn-dismiss" onclick="dismissPasteModal()">Dismiss</button>
+      <button class="modal-btn-add" onclick="autoAddDependencies()">Auto-Add All</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -700,13 +845,36 @@ function parseJson(id, errId) {
   });
 });
 
+// ─── localStorage persistence ─────────────────────────────────────────────────
+
+const _storageKeys = {
+  'code-editor':  'sandbox_v1_code',
+  'json-input':   'sandbox_v1_input',
+  'json-context': 'sandbox_v1_context',
+  'json-profile': 'sandbox_v1_profile',
+  'json-inputmeta': 'sandbox_v1_inputmeta'
+};
+
+(function restoreFromStorage() {
+  Object.entries(_storageKeys).forEach(([id, key]) => {
+    const saved = localStorage.getItem(key);
+    if (saved !== null) document.getElementById(id).value = saved;
+  });
+})();
+
+Object.entries(_storageKeys).forEach(([id, key]) => {
+  document.getElementById(id).addEventListener('input', () => {
+    localStorage.setItem(key, document.getElementById(id).value);
+  });
+});
+
 // ─── deep set helper (for api.addToContext dotted paths) ─────────────────────
 
 function deepSet(obj, path, value) {
   const parts = path.split('.');
   let cur = obj;
   for (let i = 0; i < parts.length - 1; i++) {
-    if (cur[parts[i]] === undefined || typeof cur[parts[i]] !== 'object') {
+    if (cur[parts[i]] == null || typeof cur[parts[i]] !== 'object') {
       cur[parts[i]] = {};
     }
     cur = cur[parts[i]];
@@ -852,9 +1020,10 @@ function runCode() {
 
   let runError = null;
   try {
-    // Execute — inject context, input, profile, api, and moment as locals
-    const fn = new Function('context', 'input', 'profile', 'api', 'moment', code);
-    fn(context, input, profile, api, moment);
+    // actions = api alias (Cognigy Code nodes use 'actions', not 'api')
+    // _ = lodash (available in real Cognigy Code nodes)
+    const fn = new Function('context', 'input', 'profile', 'api', 'actions', 'moment', '_', code);
+    fn(context, input, profile, api, api, moment, window._);
   } catch(e) {
     runError = e;
   } finally {
@@ -865,7 +1034,7 @@ function runCode() {
   }
 
   // Render results
-  renderOutput({ contextWrites, consoleLogs, context, profile, runError });
+  renderOutput({ contextWrites, consoleLogs, context, input, profile, runError });
 
   if (runError) {
     setStatus('error', 'Error');
@@ -876,7 +1045,7 @@ function runCode() {
 
 // ─── render ──────────────────────────────────────────────────────────────────
 
-function renderOutput({ contextWrites, consoleLogs, context, profile, runError }) {
+function renderOutput({ contextWrites, consoleLogs, context, input, profile, runError }) {
   document.getElementById('output-empty').style.display = 'none';
   document.getElementById('output-content').style.display = 'block';
 
@@ -938,7 +1107,8 @@ function renderOutput({ contextWrites, consoleLogs, context, profile, runError }
   }
   conList.innerHTML = conHtml;
 
-  // ── full context tab ──
+  // ── full state tab ──
+  document.getElementById('input-state-pre').textContent = JSON.stringify(input, null, 2);
   document.getElementById('ctx-state-pre').textContent = JSON.stringify(context, null, 2);
   document.getElementById('profile-state-pre').textContent = JSON.stringify(profile, null, 2);
 }
@@ -985,6 +1155,133 @@ function clearAll() {
 function toggleTheme() {
   const isLight = document.documentElement.classList.toggle('light');
   document.getElementById('theme-label').textContent = isLight ? 'Day' : 'Night';
+}
+
+// ─── paste dependency scanner ────────────────────────────────────────────────
+
+let _pendingDeps = null;
+
+document.getElementById('code-editor').addEventListener('paste', () => {
+  setTimeout(() => {
+    const code = document.getElementById('code-editor').value;
+    const deps = scanCodeForDependencies(code);
+    const missing = findMissingDependencies(deps);
+    if (missing.context.length || missing.inputData.length || missing.inputMeta.length) {
+      _pendingDeps = missing;
+      showPasteModal(missing);
+    }
+  }, 0);
+});
+
+function parseJsonSilent(id) {
+  const raw = document.getElementById(id).value.trim();
+  if (!raw || raw === '{}') return {};
+  try { return JSON.parse(raw); } catch { return {}; }
+}
+
+function scanCodeForDependencies(code) {
+  // Strip single-line and block comments to reduce false positives
+  const stripped = code
+    .replace(/\/\/[^\n]*/g, '')
+    .replace(/\/\*[\s\S]*?\*\//g, '');
+
+  const contextPaths  = new Set();
+  const inputDataPaths = new Set();
+  const inputMetaPaths = new Set();
+  let m;
+
+  // context.foo, context?.foo?.bar, etc.
+  const ctxRe = /\bcontext((?:\??\.[\w$]+)+)/g;
+  while ((m = ctxRe.exec(stripped)) !== null) {
+    const path = m[1].replace(/\?\./g, '.').replace(/^\./, '');
+    if (path) contextPaths.add(path);
+  }
+
+  // api.getContext('some.path')
+  const getCtxRe = /\bapi\.getContext\s*\(\s*['"]([^'"]+)['"]\s*\)/g;
+  while ((m = getCtxRe.exec(stripped)) !== null) {
+    contextPaths.add(m[1]);
+  }
+
+  // input.data.foo, input?.data?.foo.bar, etc.
+  const inputDataRe = /\binput(?:\??\.data)((?:\??\.[\w$]+)+)/g;
+  while ((m = inputDataRe.exec(stripped)) !== null) {
+    const path = m[1].replace(/\?\./g, '.').replace(/^\./, '');
+    if (path) inputDataPaths.add(path);
+  }
+
+  // input.metaField chains (anything that isn't .data) — captures full chain e.g. getAccountStatus.result
+  const inputMetaRe = /\binput((?:\??\.[\w$]+)+)/g;
+  while ((m = inputMetaRe.exec(stripped)) !== null) {
+    const path = m[1].replace(/\?\./g, '.').replace(/^\./, '');
+    if (path !== 'data' && !path.startsWith('data.')) {
+      inputMetaPaths.add(path);
+    }
+  }
+
+  return {
+    contextPaths:  [...contextPaths],
+    inputDataPaths: [...inputDataPaths],
+    inputMetaPaths: [...inputMetaPaths]
+  };
+}
+
+function findMissingDependencies({ contextPaths, inputDataPaths, inputMetaPaths }) {
+  const ctxObj   = parseJsonSilent('json-context');
+  const dataObj  = parseJsonSilent('json-input');
+  const metaObj  = parseJsonSilent('json-inputmeta');
+  return {
+    context:   contextPaths.filter(p  => deepGet(ctxObj,  p) === undefined),
+    inputData: inputDataPaths.filter(p => deepGet(dataObj, p) === undefined),
+    inputMeta: inputMetaPaths.filter(p => deepGet(metaObj, p) === undefined)
+  };
+}
+
+function showPasteModal(missing) {
+  function buildSection(title, prefix, paths) {
+    if (!paths.length) return '';
+    return `<div class="modal-section">
+      <div class="modal-section-title">${escHtml(title)}</div>
+      <div class="modal-path-list">
+        ${paths.map(p => `
+          <div class="modal-path-item">
+            <span class="modal-path-prefix">${escHtml(prefix)}</span>
+            <span class="modal-path-key">${escHtml(p)}</span>
+            <span class="modal-path-badge">missing</span>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }
+  document.getElementById('paste-modal-body').innerHTML =
+    buildSection('Context', 'context.', missing.context) +
+    buildSection('input.data', 'input.data.', missing.inputData) +
+    buildSection('input (meta)', 'input.', missing.inputMeta);
+  document.getElementById('paste-modal-overlay').style.display = 'flex';
+}
+
+function dismissPasteModal() {
+  document.getElementById('paste-modal-overlay').style.display = 'none';
+  _pendingDeps = null;
+}
+
+function handleModalOverlayClick(e) {
+  if (e.target === document.getElementById('paste-modal-overlay')) dismissPasteModal();
+}
+
+function autoAddDependencies() {
+  if (!_pendingDeps) return;
+  function addToEditor(editorId, errId, paths) {
+    if (!paths.length) return;
+    const el  = document.getElementById(editorId);
+    const obj = parseJsonSilent(editorId);
+    paths.forEach(p => { if (deepGet(obj, p) === undefined) deepSet(obj, p, null); });
+    el.value = JSON.stringify(obj, null, 2);
+    parseJson(editorId, errId);
+  }
+  addToEditor('json-context',   'err-context',   _pendingDeps.context);
+  addToEditor('json-input',     'err-input',     _pendingDeps.inputData);
+  addToEditor('json-inputmeta', 'err-inputmeta', _pendingDeps.inputMeta);
+  dismissPasteModal();
 }
 
 // ─── keyboard shortcut ───────────────────────────────────────────────────────

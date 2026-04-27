@@ -657,6 +657,369 @@
   }
   .modal-btn-add:hover { opacity: 0.88; box-shadow: 0 0 20px var(--accent-glow); }
 
+  /* ── saves button (topbar) ── */
+  .saves-btn {
+    background: transparent;
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    color: var(--text2);
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 6px 14px;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .saves-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── saves modal ── */
+  .saves-modal-box {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 14px;
+    width: 580px;
+    max-width: 92vw;
+    max-height: 82vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(124,109,250,0.08);
+    overflow: hidden;
+  }
+  .saves-modal-header {
+    padding: 18px 22px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .saves-modal-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .saves-modal-title-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+  .saves-modal-close {
+    background: transparent;
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    color: var(--text3);
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 3px 10px;
+    transition: all 0.15s;
+  }
+  .saves-modal-close:hover { border-color: var(--text2); color: var(--text); }
+  .saves-modal-new {
+    padding: 12px 22px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .saves-text-input {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 6px 10px;
+    outline: none;
+    flex: 1;
+    transition: border-color 0.15s;
+  }
+  .saves-text-input::placeholder { color: var(--text3); }
+  .saves-text-input:focus { border-color: var(--accent); }
+  .saves-modal-body {
+    overflow-y: auto;
+    flex: 1;
+    padding: 14px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .saves-modal-body::-webkit-scrollbar { width: 4px; }
+  .saves-modal-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+  .saves-empty {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+    text-align: center;
+    padding: 30px 0;
+    line-height: 1.9;
+  }
+  .save-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .save-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .save-card-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+  .save-card-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+    font-weight: 600;
+    flex: 1;
+  }
+  .save-card-actions { display: flex; gap: 6px; }
+  .save-scenarios {
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .save-scenarios-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 2px;
+  }
+  .scenario-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 10px;
+    animation: fadeIn 0.15s ease;
+  }
+  .scenario-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--green);
+    flex-shrink: 0;
+  }
+  .scenario-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text);
+    flex: 1;
+  }
+  .scenarios-empty {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+    padding: 2px 0 4px;
+    font-style: italic;
+  }
+  .scenario-add-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-top: 4px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+  .save-btn-small {
+    background: var(--accent);
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    cursor: pointer;
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 5px 12px;
+    transition: opacity 0.15s;
+    flex-shrink: 0;
+  }
+  .save-btn-small:hover { opacity: 0.85; }
+  .save-btn-delete {
+    background: transparent;
+    border: 1px solid var(--border2);
+    border-radius: 5px;
+    color: var(--text3);
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 3px 7px;
+    transition: all 0.15s;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+  .save-btn-delete:hover { border-color: var(--red); color: var(--red); }
+  .save-btn-load {
+    background: transparent;
+    border: 1px solid var(--border2);
+    border-radius: 5px;
+    color: var(--text2);
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 3px 8px;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .save-btn-load:hover { border-color: var(--accent); color: var(--accent); }
+  .save-btn-run {
+    background: transparent;
+    border: 1px solid var(--green);
+    border-radius: 5px;
+    color: var(--green);
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 3px 8px;
+    transition: all 0.15s;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .save-btn-run:hover { background: var(--green-dim); }
+
+  /* ── test results view (inside saves modal) ── */
+  .results-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+    flex-shrink: 0;
+  }
+  .results-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    flex: 1;
+  }
+  .results-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 2px 9px;
+    border-radius: 10px;
+    flex-shrink: 0;
+  }
+  .results-badge.pass { background: var(--green-dim); color: var(--green); }
+  .results-badge.fail { background: var(--red-dim);   color: var(--red);   }
+  .sc-result-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .sc-result-card.pass { border-left: 3px solid var(--green); }
+  .sc-result-card.fail { border-left: 3px solid var(--red); }
+  .sc-result-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.1s;
+  }
+  .sc-result-row:hover { background: var(--surface2); }
+  .sc-result-status {
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+    width: 16px;
+    text-align: center;
+  }
+  .sc-result-status.pass { color: var(--green); }
+  .sc-result-status.fail { color: var(--red); }
+  .sc-result-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text);
+    flex: 1;
+  }
+  .sc-result-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+    flex-shrink: 0;
+  }
+  .sc-error-badge {
+    color: var(--red);
+    font-size: 9px;
+    background: var(--red-dim);
+    padding: 1px 5px;
+    border-radius: 3px;
+    vertical-align: middle;
+  }
+  .sc-result-toggle {
+    font-size: 11px;
+    color: var(--text3);
+    flex-shrink: 0;
+    width: 14px;
+    text-align: center;
+  }
+  .sc-result-detail {
+    border-top: 1px solid var(--border);
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: var(--surface2);
+  }
+  .sc-error-msg {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--red);
+    background: var(--red-dim);
+    border: 1px solid rgba(230,72,61,0.2);
+    border-radius: 5px;
+    padding: 7px 10px;
+    line-height: 1.5;
+    word-break: break-word;
+  }
+  .sc-detail-section { display: flex; flex-direction: column; gap: 3px; }
+  .sc-detail-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 2px;
+  }
+  .sc-detail-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    line-height: 1.5;
+  }
+  .sc-detail-path { color: var(--accent); flex-shrink: 0; max-width: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sc-detail-op { font-size: 9px; padding: 1px 5px; border-radius: 3px; flex-shrink: 0; }
+  .sc-detail-op.add { background: var(--green-dim); color: var(--green); }
+  .sc-detail-op.del { background: var(--red-dim);   color: var(--red);   }
+  .sc-detail-val { color: var(--text2); flex: 1; word-break: break-word; }
+  .sc-detail-empty { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text3); font-style: italic; }
+
   /* ── resizable section headers (data pane) ── */
   .json-section-header.resizable {
     cursor: row-resize;
@@ -701,6 +1064,10 @@
   <button class="theme-toggle" onclick="toggleTheme()" title="Toggle day/night theme">
     <span class="icon">🌙</span>
     <span id="theme-label">Night</span>
+  </button>
+  <button class="saves-btn" onclick="openSavesModal()">
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 3a1 1 0 011-1h7.5L13 4.5V13a1 1 0 01-1 1H3a1 1 0 01-1-1V3z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 2v3.5H5V2M5 9h6M5 12h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Saves
   </button>
   <button class="clear-btn" onclick="clearAll()">Clear</button>
   <button class="run-btn" onclick="runCode()">
@@ -819,6 +1186,24 @@
     </div>
   </div>
 
+</div>
+
+<!-- SAVES MODAL -->
+<div id="saves-modal-overlay" class="modal-overlay" style="display:none" onclick="handleSavesOverlayClick(event)">
+  <div class="saves-modal-box" id="saves-modal-box">
+    <div class="saves-modal-header">
+      <div class="saves-modal-title">
+        <span class="saves-modal-title-dot"></span>
+        Saves
+      </div>
+      <button class="saves-modal-close" onclick="closeSavesModal()">✕ Close</button>
+    </div>
+    <div class="saves-modal-new">
+      <input class="saves-text-input" id="saves-new-name" placeholder="Code node name…" onkeydown="if(event.key==='Enter') saveCurrentCode()" maxlength="60">
+      <button class="save-btn-small" onclick="saveCurrentCode()">Save code</button>
+    </div>
+    <div class="saves-modal-body" id="saves-modal-body"></div>
+  </div>
 </div>
 
 <!-- PASTE DEPENDENCY MODAL -->
@@ -1543,6 +1928,276 @@ document.addEventListener('keydown', e => {
   }
   // Tab/indent handled natively by Ace
 });
+
+// ─── saves manager ────────────────────────────────────────────────────────────
+
+const _savesKey = 'sandbox_v1_saves';
+
+function _loadSaves() {
+  try { return JSON.parse(localStorage.getItem(_savesKey)) || []; } catch { return []; }
+}
+function _persistSaves(saves) {
+  localStorage.setItem(_savesKey, JSON.stringify(saves));
+}
+function _escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function openSavesModal() {
+  renderSavesModal();
+  document.getElementById('saves-modal-overlay').style.display = 'flex';
+  document.getElementById('saves-new-name').focus();
+}
+function closeSavesModal() {
+  document.getElementById('saves-modal-overlay').style.display = 'none';
+}
+function handleSavesOverlayClick(e) {
+  if (e.target === document.getElementById('saves-modal-overlay')) closeSavesModal();
+}
+
+function renderSavesModal() {
+  const saves = _loadSaves();
+  const body  = document.getElementById('saves-modal-body');
+  if (saves.length === 0) {
+    body.innerHTML = '<div class="saves-empty">No saves yet.<br>Enter a name above and click <strong>Save code</strong> to create your first save.</div>';
+    return;
+  }
+  body.innerHTML = saves.map(s => `
+    <div class="save-card">
+      <div class="save-card-header">
+        <span class="save-card-dot"></span>
+        <span class="save-card-name">${_escHtml(s.name)}</span>
+        <div class="save-card-actions">
+          ${s.scenarios.length > 0 ? `<button class="save-btn-run" onclick="runAllScenarios('${s.id}')"><svg width="9" height="9" viewBox="0 0 12 12" fill="currentColor"><path d="M2 1.5L10 6L2 10.5V1.5Z"/></svg> Run all</button>` : ''}
+          <button class="save-btn-load" onclick="loadSave('${s.id}')">Load code</button>
+          <button class="save-btn-delete" title="Delete save" onclick="deleteSave('${s.id}')">✕</button>
+        </div>
+      </div>
+      <div class="save-scenarios">
+        <div class="save-scenarios-label">Scenarios</div>
+        ${s.scenarios.length === 0
+          ? '<div class="scenarios-empty">No scenarios — add one below.</div>'
+          : s.scenarios.map(sc => `
+            <div class="scenario-row">
+              <span class="scenario-dot"></span>
+              <span class="scenario-name">${_escHtml(sc.name)}</span>
+              <button class="save-btn-load" onclick="loadScenario('${s.id}','${sc.id}')">Load</button>
+              <button class="save-btn-delete" title="Delete scenario" onclick="deleteScenario('${s.id}','${sc.id}')">✕</button>
+            </div>`).join('')
+        }
+        <div class="scenario-add-row">
+          <input class="saves-text-input" id="sc-name-${s.id}" placeholder="Scenario name…" onkeydown="if(event.key==='Enter') addScenario('${s.id}')" maxlength="60">
+          <button class="save-btn-small" onclick="addScenario('${s.id}')">Add</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function saveCurrentCode() {
+  const name = document.getElementById('saves-new-name').value.trim();
+  if (!name) { document.getElementById('saves-new-name').focus(); return; }
+  const saves = _loadSaves();
+  saves.unshift({ id: crypto.randomUUID(), name, code: getEditorValue('code-editor'), scenarios: [] });
+  _persistSaves(saves);
+  document.getElementById('saves-new-name').value = '';
+  renderSavesModal();
+}
+
+function loadSave(saveId) {
+  const save = _loadSaves().find(s => s.id === saveId);
+  if (!save) return;
+  setEditorValue('code-editor', save.code);
+  closeSavesModal();
+  setStatus('success', `Loaded: ${save.name}`);
+  setTimeout(() => setStatus('idle', 'Idle'), 2500);
+}
+
+function deleteSave(saveId) {
+  _persistSaves(_loadSaves().filter(s => s.id !== saveId));
+  renderSavesModal();
+}
+
+function addScenario(saveId) {
+  const input = document.getElementById(`sc-name-${saveId}`);
+  const name  = input ? input.value.trim() : '';
+  if (!name) { if (input) input.focus(); return; }
+  const saves = _loadSaves();
+  const save  = saves.find(s => s.id === saveId);
+  if (!save) return;
+  save.scenarios.push({
+    id:      crypto.randomUUID(),
+    name,
+    input:   getEditorValue('json-input'),
+    context: getEditorValue('json-context'),
+    profile: getEditorValue('json-profile')
+  });
+  _persistSaves(saves);
+  renderSavesModal();
+}
+
+function loadScenario(saveId, scenarioId) {
+  const save = _loadSaves().find(s => s.id === saveId);
+  if (!save) return;
+  const sc = save.scenarios.find(s => s.id === scenarioId);
+  if (!sc) return;
+  setEditorValue('json-input',   sc.input);
+  setEditorValue('json-context', sc.context);
+  setEditorValue('json-profile', sc.profile);
+  closeSavesModal();
+  setStatus('success', `Loaded: ${sc.name}`);
+  setTimeout(() => setStatus('idle', 'Idle'), 2500);
+}
+
+function deleteScenario(saveId, scenarioId) {
+  const saves = _loadSaves();
+  const save  = saves.find(s => s.id === saveId);
+  if (!save) return;
+  save.scenarios = save.scenarios.filter(s => s.id !== scenarioId);
+  _persistSaves(saves);
+  renderSavesModal();
+}
+
+// ─── execution engine (shared by run + batch run) ─────────────────────────────
+
+function _executionEngine(code, inputObj, ctxInit, profileInit) {
+  const context = JSON.parse(JSON.stringify(ctxInit));
+  const profile = JSON.parse(JSON.stringify(profileInit));
+  const input   = Object.assign({
+    text: '', sessionId: 'sandbox-session-001', userId: 'sandbox-user-001',
+    flowName: 'Main Flow', URLToken: 'dev',
+    currentTime: { plain: new Date().toISOString() }
+  }, inputObj);
+  if (!input.data || typeof input.data !== 'object') input.data = {};
+
+  const contextWrites = [];
+  const consoleLogs   = [];
+
+  const api = {
+    addToContext(path, value, _m) { deepSet(context, path, value); contextWrites.push({ op:'add',    path, value }); },
+    setContext(path, value)       { deepSet(context, path, value); contextWrites.push({ op:'set',    path, value }); },
+    getContext(path)              { return deepGet(context, path); },
+    deleteContext(path)           { deepDelete(context, path);     contextWrites.push({ op:'delete', path, value:null }); },
+    removeFromContext(path)       { deepDelete(context, path);     contextWrites.push({ op:'remove', path, value:null }); },
+    resetContext()                { Object.keys(context).forEach(k=>delete context[k]); contextWrites.push({ op:'resetContext', path:'*', value:null }); },
+    updateProfile(updates)        { Object.assign(profile, updates); contextWrites.push({ op:'updateProfile', path:'profile', value:updates }); },
+    say(t)             { consoleLogs.push({ level:'info',  msg:`[api.say] ${JSON.stringify(t)}` }); },
+    output(o)          { consoleLogs.push({ level:'info',  msg:`[api.output] ${JSON.stringify(o)}` }); },
+    log(m)             { consoleLogs.push({ level:'log',   msg:`[api.log] ${m}` }); },
+    logDebugMessage(m) { consoleLogs.push({ level:'log',   msg:`[api.logDebugMessage] ${m}` }); },
+    logDebugError(m)   { consoleLogs.push({ level:'error', msg:`[api.logDebugError] ${m}` }); },
+    setNextNode(n)     { consoleLogs.push({ level:'info',  msg:`[api.setNextNode] → ${n}` }); },
+    stopExecution()    { consoleLogs.push({ level:'warn',  msg:'[api.stopExecution] Execution stopped' }); },
+    setState(s)        { consoleLogs.push({ level:'info',  msg:`[api.setState] → ${s}` }); },
+    getState()         { return null; },
+    setAppState(k,v)   { consoleLogs.push({ level:'info',  msg:`[api.setAppState] ${k} = ${JSON.stringify(v)}` }); },
+    handover(c)        { consoleLogs.push({ level:'warn',  msg:`[api.handover] ${JSON.stringify(c)}` }); },
+    completeGoal(g)    { consoleLogs.push({ level:'info',  msg:`[api.completeGoal] ${g}` }); },
+    base64Encode(s) { return btoa(s); },
+    base64Decode(s) { return atob(s); },
+  };
+
+  function fmtV(v) { if (typeof v==='object'&&v!==null){try{return JSON.stringify(v,null,2);}catch{return String(v);}}return String(v); }
+  const oL=console.log, oW=console.warn, oE=console.error, oI=console.info;
+  console.log   = (...a) => { consoleLogs.push({ level:'log',   msg:a.map(fmtV).join(' ') }); oL(...a); };
+  console.warn  = (...a) => { consoleLogs.push({ level:'warn',  msg:a.map(fmtV).join(' ') }); oW(...a); };
+  console.error = (...a) => { consoleLogs.push({ level:'error', msg:a.map(fmtV).join(' ') }); oE(...a); };
+  console.info  = (...a) => { consoleLogs.push({ level:'info',  msg:a.map(fmtV).join(' ') }); oI(...a); };
+
+  let runError = null;
+  try {
+    (new Function('context','input','profile','api','actions','moment','_', code))
+      (context, input, profile, api, api, moment, window._);
+  } catch(e) { runError = e; }
+  finally { console.log=oL; console.warn=oW; console.error=oE; console.info=oI; }
+
+  return { contextWrites, consoleLogs, context, input, profile, runError };
+}
+
+// ─── batch run ────────────────────────────────────────────────────────────────
+
+function runAllScenarios(saveId) {
+  const save = _loadSaves().find(s => s.id === saveId);
+  if (!save || !save.scenarios.length) return;
+
+  function parseStr(str) {
+    const s = (str || '').trim();
+    if (!s || s === '{}') return {};
+    try { return JSON.parse(s); } catch { return null; }
+  }
+
+  const results = save.scenarios.map(sc => {
+    const inputObj    = parseStr(sc.input);
+    const ctxInit     = parseStr(sc.context);
+    const profileInit = parseStr(sc.profile);
+    if (inputObj === null || ctxInit === null || profileInit === null) {
+      return { scenarioName: sc.name, contextWrites:[], consoleLogs:[], context:{}, input:{}, profile:{},
+               runError: new Error('Invalid JSON in scenario data') };
+    }
+    return { scenarioName: sc.name, ..._executionEngine(save.code, inputObj, ctxInit, profileInit) };
+  });
+
+  renderTestResults(save.name, results);
+}
+
+function renderTestResults(saveName, results) {
+  const body      = document.getElementById('saves-modal-body');
+  const passCount = results.filter(r => !r.runError).length;
+  const allPass   = passCount === results.length;
+
+  body.innerHTML = `
+    <div class="results-header">
+      <button class="saves-modal-close" onclick="renderSavesModal()">← Back</button>
+      <span class="results-title">${_escHtml(saveName)}</span>
+      <span class="results-badge ${allPass ? 'pass' : 'fail'}">${passCount} / ${results.length} passed</span>
+    </div>
+    ${results.map((r, i) => {
+      const opColor = op => (op==='delete'||op==='remove'||op==='resetContext') ? 'del' : 'add';
+      const valStr  = v  => v===null ? 'null' : (typeof v==='object' ? JSON.stringify(v) : String(v));
+      return `
+        <div class="sc-result-card ${r.runError ? 'fail' : 'pass'}">
+          <div class="sc-result-row" onclick="toggleResultDetail('sc-detail-${i}')">
+            <span class="sc-result-status ${r.runError ? 'fail' : 'pass'}">${r.runError ? '✗' : '✓'}</span>
+            <span class="sc-result-name">${_escHtml(r.scenarioName)}</span>
+            <span class="sc-result-meta">${r.contextWrites.length} writes · ${r.consoleLogs.length} logs${r.runError ? ' · <span class="sc-error-badge">ERROR</span>' : ''}</span>
+            <span class="sc-result-toggle" id="sc-toggle-${i}">▾</span>
+          </div>
+          <div class="sc-result-detail" id="sc-detail-${i}" style="display:none">
+            ${r.runError ? `<div class="sc-error-msg">${_escHtml(r.runError.toString())}</div>` : ''}
+            ${r.contextWrites.length ? `
+              <div class="sc-detail-section">
+                <div class="sc-detail-label">Context Writes</div>
+                ${r.contextWrites.map(w => `
+                  <div class="sc-detail-row">
+                    <span class="sc-detail-path">context.${_escHtml(w.path)}</span>
+                    <span class="sc-detail-op ${opColor(w.op)}">${w.op}</span>
+                    <span class="sc-detail-val">${_escHtml(valStr(w.value))}</span>
+                  </div>`).join('')}
+              </div>` : ''}
+            ${r.consoleLogs.length ? `
+              <div class="sc-detail-section">
+                <div class="sc-detail-label">Console</div>
+                ${r.consoleLogs.map(l => `
+                  <div class="sc-detail-row">
+                    <span class="sc-detail-op ${l.level==='error'?'del':l.level==='warn'?'del':'add'}">${l.level}</span>
+                    <span class="sc-detail-val">${_escHtml(l.msg)}</span>
+                  </div>`).join('')}
+              </div>` : ''}
+            ${!r.runError && !r.contextWrites.length && !r.consoleLogs.length
+              ? '<div class="sc-detail-empty">No writes or logs.</div>' : ''}
+          </div>
+        </div>`;
+    }).join('')}`;
+}
+
+function toggleResultDetail(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const open = el.style.display === 'none';
+  el.style.display = open ? 'block' : 'none';
+  const idx = id.replace('sc-detail-', '');
+  const tog = document.getElementById(`sc-toggle-${idx}`);
+  if (tog) tog.textContent = open ? '▴' : '▾';
+}
 </script>
 </body>
 </html>

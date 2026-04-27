@@ -2,7 +2,7 @@
 
 A single-file browser tool for writing, testing, and debugging Cognigy Code Node JavaScript without deploying to a live agent. Paste your code, configure the input state, run it, and inspect what changed — all locally.
 
-Built by **NiCE ProServ**.
+Built by **Daniel Tucker, Senior Solutions Architect — NiCE ProServ**.
 
 ---
 

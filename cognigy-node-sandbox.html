@@ -168,10 +168,8 @@
   /* ── main layout ── */
   .workspace {
     flex: 1;
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    grid-template-rows: 1fr;
-    gap: 0;
+    display: flex;
+    flex-direction: row;
     overflow: hidden;
     min-height: 0;
   }
@@ -179,11 +177,29 @@
   .pane {
     display: flex;
     flex-direction: column;
-    border-right: 1px solid var(--border);
     overflow: hidden;
     min-height: 0;
+    flex: 1;
+    min-width: 120px;
   }
-  .pane:last-child { border-right: none; }
+
+  /* horizontal pane divider */
+  .h-divider {
+    width: 4px;
+    background: var(--border);
+    cursor: col-resize;
+    flex-shrink: 0;
+    transition: background 0.15s;
+    z-index: 5;
+    position: relative;
+  }
+  .h-divider::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    left: -5px; right: -5px;
+  }
+  .h-divider:hover, .h-divider.active { background: var(--accent); }
 
   .pane-header {
     display: flex;
@@ -647,6 +663,38 @@
     transition: opacity 0.15s, box-shadow 0.15s;
   }
   .modal-btn-add:hover { opacity: 0.88; box-shadow: 0 0 20px var(--accent-glow); }
+
+  /* ── resizable section headers (data pane) ── */
+  .json-section-header.resizable {
+    cursor: row-resize;
+    user-select: none;
+  }
+  .json-section-header.resizable:hover,
+  .json-section-header.resizing {
+    background: var(--surface3);
+  }
+  .resize-grip {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 1px 0;
+    opacity: 0.3;
+    transition: opacity 0.15s;
+  }
+  .json-section-header.resizable:hover .resize-grip,
+  .json-section-header.resizing .resize-grip { opacity: 0.85; }
+  .resize-grip span {
+    display: block;
+    width: 16px;
+    height: 1.5px;
+    border-radius: 2px;
+    background: var(--text2);
+  }
+
+  /* initial section proportions */
+  #section-input   { flex: 2; }
+  #section-context { flex: 1; }
+  #section-profile { flex: 0.8; }
 </style>
 </head>
 <body>
@@ -671,10 +719,10 @@
 </div>
 
 <!-- WORKSPACE -->
-<div class="workspace">
+<div class="workspace" id="workspace">
 
   <!-- PANE 1: CODE -->
-  <div class="pane">
+  <div class="pane" id="pane-code">
     <div class="pane-header">
       <div class="pane-icon purple"></div>
       <span class="pane-label">Code Node &nbsp;— paste JS here</span>
@@ -693,8 +741,10 @@ api.addToContext('test', 'Hello from the sandbox!', 'simple');
     </div>
   </div>
 
+  <div class="h-divider" id="h-divider-1"></div>
+
   <!-- PANE 2: INPUT / CONTEXT JSON -->
-  <div class="pane">
+  <div class="pane" id="pane-data">
     <div class="pane-header">
       <div class="pane-icon yellow"></div>
       <span class="pane-label">Data</span>
@@ -702,28 +752,30 @@ api.addToContext('test', 'Hello from the sandbox!', 'simple');
     <div class="pane-body pane-right-label">
 
       <!-- input -->
-      <div class="json-section" style="flex:2">
+      <div class="json-section" id="section-input">
         <div class="json-section-header">
           <span class="json-section-label">input</span>
           <span class="json-err" id="err-input">invalid json</span>
         </div>
-        <textarea class="json-editor" id="json-input" spellcheck="false" placeholder='{ "text": "", "data": { "request": { "estimatedWaitTime": 420000 } } }'></textarea>
+        <textarea class="json-editor" id="json-input" spellcheck="false" placeholder="{}"></textarea>
       </div>
 
       <!-- context -->
-      <div class="json-section" style="flex:1">
-        <div class="json-section-header">
+      <div class="json-section" id="section-context">
+        <div class="json-section-header resizable" id="context-header">
           <span class="json-section-label">context</span>
           <span class="json-err" id="err-context">invalid json</span>
+          <div class="resize-grip"><span></span><span></span><span></span></div>
         </div>
-        <textarea class="json-editor" id="json-context" spellcheck="false" placeholder='{ "configuration": { "env": "dev" } }'></textarea>
+        <textarea class="json-editor" id="json-context" spellcheck="false" placeholder="{}"></textarea>
       </div>
 
       <!-- profile -->
-      <div class="json-section" style="flex:0.8">
-        <div class="json-section-header">
+      <div class="json-section" id="section-profile">
+        <div class="json-section-header resizable" id="profile-header">
           <span class="json-section-label">profile</span>
           <span class="json-err" id="err-profile">invalid json</span>
+          <div class="resize-grip"><span></span><span></span><span></span></div>
         </div>
         <textarea class="json-editor" id="json-profile" spellcheck="false" placeholder="{}">{}
 </textarea>
@@ -732,8 +784,10 @@ api.addToContext('test', 'Hello from the sandbox!', 'simple');
     </div>
   </div>
 
+  <div class="h-divider" id="h-divider-2"></div>
+
   <!-- PANE 3: OUTPUT -->
-  <div class="pane">
+  <div class="pane" id="pane-output">
     <div class="pane-header">
       <div class="pane-icon green"></div>
       <span class="pane-label">Output</span>
@@ -1126,9 +1180,9 @@ function switchOutTab(btn, tabId) {
 
 function clearAll() {
   // Clear editors
-  ['code-editor', 'json-input', 'json-context', 'json-profile'].forEach(id => {
-    document.getElementById(id).value = '';
-  });
+  document.getElementById('code-editor').value = '';
+  document.getElementById('json-input').value = '{}';
+  document.getElementById('json-context').value = '{}';
   document.getElementById('json-profile').value = '{}';
 
   // Clear localStorage
@@ -1290,6 +1344,88 @@ function autoAddDependencies() {
 
   dismissPasteModal();
 }
+
+// ─── resize: horizontal pane splitters ───────────────────────────────────────
+
+(function initHorizontalResize() {
+  const paneCode   = document.getElementById('pane-code');
+  const paneData   = document.getElementById('pane-data');
+  const paneOutput = document.getElementById('pane-output');
+
+  function setupDivider(divEl, leftPane, rightPane) {
+    divEl.addEventListener('mousedown', e => {
+      e.preventDefault();
+      const startX     = e.clientX;
+      const startLeft  = leftPane.getBoundingClientRect().width;
+      const startRight = rightPane.getBoundingClientRect().width;
+      const total      = startLeft + startRight;
+
+      divEl.classList.add('active');
+      document.body.style.cursor    = 'col-resize';
+      document.body.style.userSelect = 'none';
+
+      function onMove(e) {
+        const dx      = e.clientX - startX;
+        const newLeft = Math.max(140, Math.min(total - 140, startLeft + dx));
+        leftPane.style.flex  = `0 0 ${newLeft}px`;
+        rightPane.style.flex = `0 0 ${total - newLeft}px`;
+      }
+      function onUp() {
+        divEl.classList.remove('active');
+        document.body.style.cursor    = '';
+        document.body.style.userSelect = '';
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup',   onUp);
+      }
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup',   onUp);
+    });
+  }
+
+  setupDivider(document.getElementById('h-divider-1'), paneCode,   paneData);
+  setupDivider(document.getElementById('h-divider-2'), paneData, paneOutput);
+})();
+
+// ─── resize: vertical section splitters (data pane) ──────────────────────────
+
+(function initVerticalResize() {
+  const secInput   = document.getElementById('section-input');
+  const secContext = document.getElementById('section-context');
+  const secProfile = document.getElementById('section-profile');
+
+  function setupHandle(handleEl, topSec, botSec) {
+    handleEl.addEventListener('mousedown', e => {
+      e.preventDefault();
+      const startY   = e.clientY;
+      const startTop = topSec.getBoundingClientRect().height;
+      const startBot = botSec.getBoundingClientRect().height;
+      const total    = startTop + startBot;
+
+      handleEl.classList.add('resizing');
+      document.body.style.cursor    = 'row-resize';
+      document.body.style.userSelect = 'none';
+
+      function onMove(e) {
+        const dy     = e.clientY - startY;
+        const newTop = Math.max(60, Math.min(total - 60, startTop + dy));
+        topSec.style.flex = `0 0 ${newTop}px`;
+        botSec.style.flex = `0 0 ${total - newTop}px`;
+      }
+      function onUp() {
+        handleEl.classList.remove('resizing');
+        document.body.style.cursor    = '';
+        document.body.style.userSelect = '';
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup',   onUp);
+      }
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup',   onUp);
+    });
+  }
+
+  setupHandle(document.getElementById('context-header'), secInput,   secContext);
+  setupHandle(document.getElementById('profile-header'), secContext, secProfile);
+})();
 
 // ─── keyboard shortcut ───────────────────────────────────────────────────────
 document.addEventListener('keydown', e => {

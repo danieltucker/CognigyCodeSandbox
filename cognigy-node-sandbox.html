@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cognigy Code Node Sandbox</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;0,700;1,400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07080b;
+    --surface: #0e1016;
+    --surface2: #13151d;
+    --surface3: #1a1d28;
+    --border: #1f2233;
+    --border2: #2a2e42;
+    --accent: #7c6dfa;
+    --accent-glow: rgba(124,109,250,0.2);
+    --green: #00d68f;
+    --green-dim: rgba(0,214,143,0.12);
+    --red: #ff4d6a;
+    --red-dim: rgba(255,77,106,0.12);
+    --yellow: #ffb830;
+    --yellow-dim: rgba(255,184,48,0.12);
+    --text: #d8dce8;
+    --text2: #8890a8;
+    --text3: #454d66;
+    --radius: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── topbar ── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 0 20px;
+    height: 52px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    flex-shrink: 0;
+    z-index: 10;
+  }
+  .logo-mark {
+    width: 28px; height: 28px;
+    background: var(--accent);
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .app-title {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .app-title span {
+    color: var(--text3);
+    font-weight: 400;
+    font-size: 13px;
+    margin-left: 6px;
+  }
+  .topbar-spacer { flex: 1; }
+  .run-btn {
+    background: var(--accent);
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    cursor: pointer;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 7px 18px;
+    transition: opacity 0.15s, box-shadow 0.15s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .run-btn:hover { opacity: 0.88; box-shadow: 0 0 20px var(--accent-glow); }
+  .run-btn:active { opacity: 0.75; }
+  .run-btn svg { width:14px; height:14px; flex-shrink:0; }
+
+  .clear-btn {
+    background: transparent;
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    color: var(--text2);
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 6px 14px;
+    transition: all 0.15s;
+  }
+  .clear-btn:hover { border-color: var(--red); color: var(--red); }
+
+  .status-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+  .status-pill.idle    { background: var(--surface3); color: var(--text3); }
+  .status-pill.running { background: var(--yellow-dim); color: var(--yellow); }
+  .status-pill.ok      { background: var(--green-dim); color: var(--green); }
+  .status-pill.error   { background: var(--red-dim); color: var(--red); }
+
+  /* ── main layout ── */
+  .workspace {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr;
+    gap: 0;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  .pane {
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border);
+    overflow: hidden;
+    min-height: 0;
+  }
+  .pane:last-child { border-right: none; }
+
+  .pane-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+  .pane-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text3);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    flex: 1;
+  }
+  .pane-icon {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .pane-icon.purple { background: var(--accent); }
+  .pane-icon.yellow { background: var(--yellow); }
+  .pane-icon.green  { background: var(--green); }
+
+  .pane-body {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    min-height: 0;
+  }
+
+  /* ── editor pane (code) ── */
+  .code-editor {
+    width: 100%;
+    height: 100%;
+    background: var(--bg);
+    border: none;
+    color: #c9d1e8;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    outline: none;
+    padding: 16px;
+    resize: none;
+    tab-size: 2;
+    white-space: pre;
+    overflow: auto;
+  }
+  .code-editor::placeholder { color: var(--text3); }
+  .code-editor::-webkit-scrollbar { width: 5px; height: 5px; }
+  .code-editor::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+  /* ── json pane ── */
+  .json-section {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .json-section + .json-section {
+    border-top: 1px solid var(--border);
+  }
+  .json-section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .json-section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text2);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    flex: 1;
+  }
+  .json-err {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--red);
+    display: none;
+  }
+  .json-editor {
+    flex: 1;
+    width: 100%;
+    background: var(--bg);
+    border: none;
+    color: #a8d8a8;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.65;
+    outline: none;
+    padding: 14px 16px;
+    resize: none;
+    overflow: auto;
+    min-height: 0;
+  }
+  .json-editor::placeholder { color: var(--text3); }
+  .json-editor::-webkit-scrollbar { width: 5px; }
+  .json-editor::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+  /* ── output pane ── */
+  .output-pane {
+    background: var(--bg);
+    overflow-y: auto;
+    padding: 16px;
+    flex: 1;
+    min-height: 0;
+  }
+  .output-pane::-webkit-scrollbar { width: 5px; }
+  .output-pane::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+  .output-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text3);
+    text-align: center;
+    gap: 10px;
+  }
+  .output-empty svg { opacity: 0.2; }
+  .output-empty p {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    line-height: 1.6;
+  }
+
+  /* context written output */
+  .out-section { margin-bottom: 20px; }
+  .out-section-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .out-section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .out-row {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 8px;
+    overflow: hidden;
+    animation: fadeIn 0.18s ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .out-row-key {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface3);
+  }
+  .out-row-key-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    flex: 1;
+  }
+  .out-type-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    padding: 2px 7px;
+    border-radius: 3px;
+    color: var(--text3);
+    background: var(--surface);
+    border: 1px solid var(--border2);
+  }
+  .out-row-val {
+    padding: 10px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.55;
+    word-break: break-all;
+    white-space: pre-wrap;
+  }
+
+  /* console log */
+  .console-row {
+    display: flex;
+    gap: 10px;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    line-height: 1.5;
+    animation: fadeIn 0.15s ease;
+  }
+  .console-row:last-child { border-bottom: none; }
+  .console-lvl {
+    font-size: 10px;
+    width: 40px;
+    flex-shrink: 0;
+    padding-top: 1px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .console-lvl.log   { color: var(--text3); }
+  .console-lvl.warn  { color: var(--yellow); }
+  .console-lvl.error { color: var(--red); }
+  .console-lvl.info  { color: var(--accent); }
+  .console-msg { color: var(--text2); flex: 1; word-break: break-word; white-space: pre-wrap; }
+  .console-msg.warn  { color: var(--yellow); }
+  .console-msg.error { color: var(--red); }
+
+  /* error block */
+  .error-block {
+    background: var(--red-dim);
+    border: 1px solid var(--red);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--red);
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+    animation: fadeIn 0.2s ease;
+  }
+
+  /* context state viewer */
+  .ctx-viewer {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .ctx-viewer pre {
+    padding: 14px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--text2);
+    line-height: 1.65;
+    white-space: pre-wrap;
+    word-break: break-all;
+    overflow: auto;
+    max-height: 300px;
+  }
+  .ctx-viewer pre::-webkit-scrollbar { width: 4px; }
+  .ctx-viewer pre::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+  /* tabs in output */
+  .out-tabs {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0;
+  }
+  .out-tab {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text3);
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    padding: 6px 14px 8px;
+    text-transform: uppercase;
+    transition: all 0.15s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .out-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .out-tab:hover:not(.active) { color: var(--text); }
+  .out-tab .badge {
+    background: var(--surface3);
+    border-radius: 3px;
+    font-size: 9px;
+    padding: 1px 5px;
+    min-width: 16px;
+    text-align: center;
+  }
+  .out-tab.active .badge { background: var(--accent-glow); color: var(--accent); }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* kbd hint */
+  kbd {
+    background: var(--surface3);
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 2px 6px;
+    color: var(--text2);
+  }
+
+  /* resize handle between panes - visual only */
+  .pane-right-label {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .badge-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    background: var(--surface3);
+    border: 1px solid var(--border2);
+    border-radius: 3px;
+    padding: 1px 6px;
+    color: var(--text3);
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="logo-mark">CN</div>
+  <div class="app-title">Cognigy Code Node Sandbox <span>// NiCE ProServ</span></div>
+  <div class="topbar-spacer"></div>
+  <span id="status-pill" class="status-pill idle">Idle</span>
+  <button class="clear-btn" onclick="clearAll()">Clear</button>
+  <button class="run-btn" onclick="runCode()">
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M4 2.5L13 8L4 13.5V2.5Z" fill="currentColor"/>
+    </svg>
+    Run &nbsp;<kbd style="background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.15);color:#fff;font-size:10px">⌘ Enter</kbd>
+  </button>
+</div>
+
+<!-- WORKSPACE -->
+<div class="workspace">
+
+  <!-- PANE 1: CODE -->
+  <div class="pane">
+    <div class="pane-header">
+      <div class="pane-icon purple"></div>
+      <span class="pane-label">Code Node &nbsp;— paste JS here</span>
+    </div>
+    <div class="pane-body">
+      <textarea class="code-editor" id="code-editor" spellcheck="false" placeholder="// Paste your Cognigy Code Node JavaScript here
+// api.addToContext(), context, input, and profile are all available
+
+const ewt = Math.ceil(
+  ((input?.data?.request?.estimatedWaitTime ?? 0) / (1000 * 60))
+);
+
+api.addToContext('ewtMinutes', ewt, 'simple');
+api.addToContext('test', 'Hello from the sandbox!', 'simple');
+"></textarea>
+    </div>
+  </div>
+
+  <!-- PANE 2: INPUT / CONTEXT JSON -->
+  <div class="pane">
+    <div class="pane-header">
+      <div class="pane-icon yellow"></div>
+      <span class="pane-label">Input Data</span>
+    </div>
+    <div class="pane-body pane-right-label">
+
+      <!-- input.data -->
+      <div class="json-section" style="flex:1.2">
+        <div class="json-section-header">
+          <span class="json-section-label">input.data</span>
+          <span class="json-err" id="err-input">invalid json</span>
+        </div>
+        <textarea class="json-editor" id="json-input" spellcheck="false" placeholder='{ "request": { "estimatedWaitTime": 420000, "position": 5 } }'>{
+  "request": {
+    "estimatedWaitTime": 420000,
+    "position": 5
+  }
+}</textarea>
+      </div>
+
+      <!-- context -->
+      <div class="json-section" style="flex:1">
+        <div class="json-section-header">
+          <span class="json-section-label">context (initial state)</span>
+          <span class="json-err" id="err-context">invalid json</span>
+        </div>
+        <textarea class="json-editor" id="json-context" spellcheck="false" placeholder='{ "configuration": { "env": "dev" } }'>{
+  "configuration": {
+    "env": "dev"
+  }
+}</textarea>
+      </div>
+
+      <!-- profile -->
+      <div class="json-section" style="flex:0.8">
+        <div class="json-section-header">
+          <span class="json-section-label">profile</span>
+          <span class="json-err" id="err-profile">invalid json</span>
+        </div>
+        <textarea class="json-editor" id="json-profile" spellcheck="false" placeholder="{}">{}
+</textarea>
+      </div>
+
+      <!-- input meta (non-data fields) -->
+      <div class="json-section" style="flex:0.8">
+        <div class="json-section-header">
+          <span class="json-section-label">input (meta fields)</span>
+          <span class="json-err" id="err-inputmeta">invalid json</span>
+        </div>
+        <textarea class="json-editor" id="json-inputmeta" spellcheck="false" placeholder='{ "text": "hello", "sessionId": "abc123" }'>{
+  "text": "",
+  "sessionId": "sandbox-session-001",
+  "userId": "sandbox-user-001",
+  "flowName": "Main Flow",
+  "URLToken": "dev",
+  "currentTime": { "plain": "2026-04-27T10:00:00Z" }
+}</textarea>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PANE 3: OUTPUT -->
+  <div class="pane">
+    <div class="pane-header">
+      <div class="pane-icon green"></div>
+      <span class="pane-label">Output</span>
+      <span class="badge-count" id="ctx-write-count" style="display:none"></span>
+    </div>
+    <div class="output-pane" id="output-pane">
+      <div class="output-empty" id="output-empty">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+          <rect x="6" y="8" width="28" height="4" rx="2" fill="currentColor"/>
+          <rect x="6" y="18" width="20" height="4" rx="2" fill="currentColor"/>
+          <rect x="6" y="28" width="24" height="4" rx="2" fill="currentColor"/>
+        </svg>
+        <p>Run your code to see<br>context writes and console output.</p>
+      </div>
+      <div id="output-content" style="display:none">
+        <div class="out-tabs">
+          <button class="out-tab active" onclick="switchOutTab(this,'tab-context')" id="tab-btn-context">
+            Context Writes <span class="badge" id="badge-context">0</span>
+          </button>
+          <button class="out-tab" onclick="switchOutTab(this,'tab-console')" id="tab-btn-console">
+            Console <span class="badge" id="badge-console">0</span>
+          </button>
+          <button class="out-tab" onclick="switchOutTab(this,'tab-state')" id="tab-btn-state">
+            Full Context
+          </button>
+        </div>
+
+        <div class="tab-content active" id="tab-context">
+          <div id="ctx-writes-list"></div>
+        </div>
+
+        <div class="tab-content" id="tab-console">
+          <div id="console-list"></div>
+        </div>
+
+        <div class="tab-content" id="tab-state">
+          <div class="out-section-title">context after run</div>
+          <div class="ctx-viewer"><pre id="ctx-state-pre">{}</pre></div>
+          <div class="out-section-title" style="margin-top:16px">profile after run</div>
+          <div class="ctx-viewer"><pre id="profile-state-pre">{}</pre></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ─── parse helpers ───────────────────────────────────────────────────────────
+
+function parseJson(id, errId) {
+  const raw = document.getElementById(id).value.trim();
+  const errEl = document.getElementById(errId);
+  if (!raw || raw === '{}' || raw === '') {
+    errEl.style.display = 'none';
+    return {};
+  }
+  try {
+    const parsed = JSON.parse(raw);
+    errEl.style.display = 'none';
+    return parsed;
+  } catch(e) {
+    errEl.style.display = 'inline';
+    return null;
+  }
+}
+
+// live JSON validation
+['json-input','json-context','json-profile','json-inputmeta'].forEach((id, i) => {
+  const errIds = ['err-input','err-context','err-profile','err-inputmeta'];
+  document.getElementById(id).addEventListener('input', () => {
+    parseJson(id, errIds[i]);
+  });
+});
+
+// ─── deep set helper (for api.addToContext dotted paths) ─────────────────────
+
+function deepSet(obj, path, value) {
+  const parts = path.split('.');
+  let cur = obj;
+  for (let i = 0; i < parts.length - 1; i++) {
+    if (cur[parts[i]] === undefined || typeof cur[parts[i]] !== 'object') {
+      cur[parts[i]] = {};
+    }
+    cur = cur[parts[i]];
+  }
+  cur[parts[parts.length - 1]] = value;
+}
+
+function deepGet(obj, path) {
+  return path.split('.').reduce((cur, k) => (cur && cur[k] !== undefined ? cur[k] : undefined), obj);
+}
+
+function deepDelete(obj, path) {
+  const parts = path.split('.');
+  let cur = obj;
+  for (let i = 0; i < parts.length - 1; i++) {
+    if (!cur[parts[i]]) return;
+    cur = cur[parts[i]];
+  }
+  delete cur[parts[parts.length - 1]];
+}
+
+// ─── run ─────────────────────────────────────────────────────────────────────
+
+function runCode() {
+  const code = document.getElementById('code-editor').value.trim();
+  if (!code) return;
+
+  setStatus('running', 'Running...');
+
+  const inputData   = parseJson('json-input', 'err-input');
+  const ctxInit     = parseJson('json-context', 'err-context');
+  const profileInit = parseJson('json-profile', 'err-profile');
+  const inputMeta   = parseJson('json-inputmeta', 'err-inputmeta');
+
+  if (inputData === null || ctxInit === null || profileInit === null || inputMeta === null) {
+    setStatus('error', 'JSON Error');
+    showError('Fix JSON errors in the Input Data panel before running.');
+    return;
+  }
+
+  // Build the context and profile objects (mutable during run)
+  const context = JSON.parse(JSON.stringify(ctxInit));
+  const profile = JSON.parse(JSON.stringify(profileInit));
+
+  // Build the input object
+  const input = Object.assign({
+    text: '',
+    sessionId: 'sandbox-session-001',
+    userId: 'sandbox-user-001',
+    flowName: 'Main Flow',
+    URLToken: 'dev',
+    currentTime: { plain: new Date().toISOString() }
+  }, inputMeta, { data: inputData });
+
+  // Track context writes
+  const contextWrites = [];
+  const consoleLogs   = [];
+
+  // Mock api object
+  const api = {
+    addToContext(path, value, _mode) {
+      deepSet(context, path, value);
+      contextWrites.push({ op: 'add', path, value });
+    },
+    setContext(path, value) {
+      deepSet(context, path, value);
+      contextWrites.push({ op: 'set', path, value });
+    },
+    getContext(path) {
+      return deepGet(context, path);
+    },
+    deleteContext(path) {
+      deepDelete(context, path);
+      contextWrites.push({ op: 'delete', path, value: null });
+    },
+    removeFromContext(path) {
+      deepDelete(context, path);
+      contextWrites.push({ op: 'remove', path, value: null });
+    },
+    resetContext() {
+      Object.keys(context).forEach(k => delete context[k]);
+      contextWrites.push({ op: 'resetContext', path: '*', value: null });
+    },
+    updateProfile(updates) {
+      Object.assign(profile, updates);
+      contextWrites.push({ op: 'updateProfile', path: 'profile', value: updates });
+    },
+    say(text) {
+      consoleLogs.push({ level: 'info', msg: `[api.say] ${JSON.stringify(text)}` });
+    },
+    output(obj) {
+      consoleLogs.push({ level: 'info', msg: `[api.output] ${JSON.stringify(obj)}` });
+    },
+    log(msg) {
+      consoleLogs.push({ level: 'log', msg: `[api.log] ${msg}` });
+    },
+    logDebugMessage(msg) {
+      consoleLogs.push({ level: 'log', msg: `[api.logDebugMessage] ${msg}` });
+    },
+    logDebugError(msg) {
+      consoleLogs.push({ level: 'error', msg: `[api.logDebugError] ${msg}` });
+    },
+    setNextNode(nodeId) {
+      consoleLogs.push({ level: 'info', msg: `[api.setNextNode] → ${nodeId}` });
+    },
+    stopExecution() {
+      consoleLogs.push({ level: 'warn', msg: '[api.stopExecution] Execution stopped' });
+    },
+    setState(state) {
+      consoleLogs.push({ level: 'info', msg: `[api.setState] → ${state}` });
+    },
+    getState() { return null; },
+    setAppState(key, val) {
+      consoleLogs.push({ level: 'info', msg: `[api.setAppState] ${key} = ${JSON.stringify(val)}` });
+    },
+    handover(config) {
+      consoleLogs.push({ level: 'warn', msg: `[api.handover] ${JSON.stringify(config)}` });
+    },
+    completeGoal(goal) {
+      consoleLogs.push({ level: 'info', msg: `[api.completeGoal] ${goal}` });
+    },
+    base64Encode(str) { return btoa(str); },
+    base64Decode(str) { return atob(str); },
+  };
+
+  // Intercept console
+  const origLog   = console.log;
+  const origWarn  = console.warn;
+  const origError = console.error;
+  const origInfo  = console.info;
+
+  console.log   = (...a) => { consoleLogs.push({ level: 'log',   msg: a.map(fmt).join(' ') }); origLog(...a);   };
+  console.warn  = (...a) => { consoleLogs.push({ level: 'warn',  msg: a.map(fmt).join(' ') }); origWarn(...a);  };
+  console.error = (...a) => { consoleLogs.push({ level: 'error', msg: a.map(fmt).join(' ') }); origError(...a); };
+  console.info  = (...a) => { consoleLogs.push({ level: 'info',  msg: a.map(fmt).join(' ') }); origInfo(...a);  };
+
+  function fmt(v) {
+    if (typeof v === 'object' && v !== null) {
+      try { return JSON.stringify(v, null, 2); } catch { return String(v); }
+    }
+    return String(v);
+  }
+
+  let runError = null;
+  try {
+    // Execute — inject context, input, profile, api as locals
+    const fn = new Function('context', 'input', 'profile', 'api', code);
+    fn(context, input, profile, api);
+  } catch(e) {
+    runError = e;
+  } finally {
+    console.log   = origLog;
+    console.warn  = origWarn;
+    console.error = origError;
+    console.info  = origInfo;
+  }
+
+  // Render results
+  renderOutput({ contextWrites, consoleLogs, context, profile, runError });
+
+  if (runError) {
+    setStatus('error', 'Error');
+  } else {
+    setStatus('ok', `OK - ${contextWrites.length} write${contextWrites.length !== 1 ? 's' : ''}`);
+  }
+}
+
+// ─── render ──────────────────────────────────────────────────────────────────
+
+function renderOutput({ contextWrites, consoleLogs, context, profile, runError }) {
+  document.getElementById('output-empty').style.display = 'none';
+  document.getElementById('output-content').style.display = 'block';
+
+  // Badge counts
+  document.getElementById('badge-context').textContent = contextWrites.length;
+  document.getElementById('badge-console').textContent = consoleLogs.length + (runError ? 1 : 0);
+  document.getElementById('ctx-write-count').textContent = `${contextWrites.length} write${contextWrites.length !== 1 ? 's' : ''}`;
+  document.getElementById('ctx-write-count').style.display = 'inline';
+
+  // ── context writes tab ──
+  const ctxList = document.getElementById('ctx-writes-list');
+  if (runError && contextWrites.length === 0) {
+    ctxList.innerHTML = `<div class="error-block">${escHtml(runError.toString())}</div>`;
+  } else {
+    let html = '';
+    if (runError) {
+      html += `<div class="error-block" style="margin-bottom:12px">${escHtml(runError.toString())}</div>`;
+    }
+    if (contextWrites.length === 0) {
+      html += `<div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);padding:8px 0">No context writes recorded.</div>`;
+    } else {
+      contextWrites.forEach(w => {
+        const valStr = w.value === null ? 'null' : (typeof w.value === 'object' ? JSON.stringify(w.value, null, 2) : String(w.value));
+        const typeStr = w.value === null ? 'null' : typeof w.value;
+        const opColor = w.op === 'delete' || w.op === 'remove' || w.op === 'resetContext'
+          ? 'var(--red)' : 'var(--green)';
+        html += `
+          <div class="out-row">
+            <div class="out-row-key">
+              <span class="out-row-key-text">context.${w.path}</span>
+              <span class="out-type-badge" style="color:${opColor};border-color:${opColor}33">${w.op}</span>
+              <span class="out-type-badge">${typeStr}</span>
+            </div>
+            <div class="out-row-val">${escHtml(valStr)}</div>
+          </div>`;
+      });
+    }
+    ctxList.innerHTML = html;
+  }
+
+  // ── console tab ──
+  const conList = document.getElementById('console-list');
+  let conHtml = '';
+  if (runError) {
+    conHtml += `<div class="console-row">
+      <span class="console-lvl error">error</span>
+      <span class="console-msg error">${escHtml(runError.toString())}</span>
+    </div>`;
+  }
+  if (consoleLogs.length === 0 && !runError) {
+    conHtml = `<div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);padding:8px 0">No console output.</div>`;
+  } else {
+    consoleLogs.forEach(l => {
+      conHtml += `<div class="console-row">
+        <span class="console-lvl ${l.level}">${l.level}</span>
+        <span class="console-msg ${l.level === 'warn' || l.level === 'error' ? l.level : ''}">${escHtml(l.msg)}</span>
+      </div>`;
+    });
+  }
+  conList.innerHTML = conHtml;
+
+  // ── full context tab ──
+  document.getElementById('ctx-state-pre').textContent = JSON.stringify(context, null, 2);
+  document.getElementById('profile-state-pre').textContent = JSON.stringify(profile, null, 2);
+}
+
+function showError(msg) {
+  document.getElementById('output-empty').style.display = 'none';
+  document.getElementById('output-content').style.display = 'block';
+  document.getElementById('ctx-writes-list').innerHTML = `<div class="error-block">${escHtml(msg)}</div>`;
+}
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+function setStatus(type, label) {
+  const el = document.getElementById('status-pill');
+  el.className = `status-pill ${type}`;
+  el.textContent = label;
+}
+
+function switchOutTab(btn, tabId) {
+  document.querySelectorAll('.out-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(tabId).classList.add('active');
+}
+
+function clearAll() {
+  document.getElementById('output-empty').style.display = 'flex';
+  document.getElementById('output-content').style.display = 'none';
+  document.getElementById('ctx-write-count').style.display = 'none';
+  setStatus('idle', 'Idle');
+  // reset to first tab
+  document.querySelectorAll('.out-tab').forEach((t,i) => t.classList.toggle('active', i===0));
+  document.querySelectorAll('.tab-content').forEach((t,i) => t.classList.toggle('active', i===0));
+}
+
+// ─── keyboard shortcut ───────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+    e.preventDefault();
+    runCode();
+  }
+  // Tab key in code editor inserts spaces instead of changing focus
+  if (e.key === 'Tab' && document.activeElement.id === 'code-editor') {
+    e.preventDefault();
+    const ta = document.activeElement;
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    ta.value = ta.value.substring(0, start) + '  ' + ta.value.substring(end);
+    ta.selectionStart = ta.selectionEnd = start + 2;
+  }
+});
+</script>
+</body>
+</html>

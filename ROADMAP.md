@@ -6,16 +6,6 @@ Planned features for the Cognigy Code Node Sandbox. Items are listed roughly in 
 
 ## Planned
 
-### Named state saves
-
-Add the ability to save and restore named snapshots of the full sandbox state (code, input, context, and profile). Currently only a single state is persisted to `localStorage`. Named saves would allow:
-
-- Multiple test scenarios stored side by side (e.g. "happy path", "missing account", "timeout response")
-- Quick switching between scenarios without manually re-entering data
-- A simple save/load UI in the top bar or a dedicated panel
-
----
-
 ### Share via URL
 
 Encode the full sandbox state — code, input, context, and profile — into a shareable URL. Opening the URL in a browser restores the exact configuration. Intended use cases:
@@ -57,9 +47,25 @@ Results would appear in a new **Review** tab in the Output pane alongside the ex
 
 ## Completed
 
+### Saves and scenario testing
+
+A full test-case management system accessible from the **Saves** button in the top bar.
+
+**Code saves** store a named JavaScript implementation. **Scenarios** are named snapshots of `input`, `context`, and `profile` attached to a code save, allowing multiple data configurations to be tested against the same code without re-entering data.
+
+**Batch run** — each save with at least one scenario shows a **▶ Run all** button. Results are displayed in a summary view with pass/fail per scenario, context write counts, console log counts, and expandable detail.
+
+**Assertions** — an always-visible panel at the top of the Output pane where expected post-run values are defined (e.g. `context.handover = true` or `context.locale`). Assertions are evaluated after every run — single or batch — and reported inline with the actual value observed. A batch scenario is only marked passing if the code runs clean and all assertions pass.
+
+Each row in the Context Writes tab includes a **+ assert** button that creates or updates an assertion pre-populated with the written path and value. Clicking an existing assertion's text opens it for inline editing — press Enter to save or Escape to cancel.
+
+Saves and assertions are stored separately in `localStorage` and are not affected by **Clear**.
+
+---
+
 ### Theme persistence and Auto mode
 
-The theme toggle now cycles through three modes — **Night**, **Day**, and **Auto** — and persists the selection across page refreshes via `localStorage`. Auto mode follows the operating system's `prefers-color-scheme` preference and updates immediately when the system theme changes, with no page reload required.
+The theme toggle cycles through three modes — **Night**, **Day**, and **Auto** — and persists the selection across page refreshes via `localStorage`. Auto mode follows the operating system's `prefers-color-scheme` preference and updates immediately when the system theme changes, with no page reload required.
 
 ---
 

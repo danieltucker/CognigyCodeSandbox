@@ -304,6 +304,96 @@
     display: none;
   }
   /* ── output pane ── */
+  /* ── assertions panel ── */
+  .assertions-panel {
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--border);
+    padding: 10px 16px;
+  }
+  .assertions-header {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 6px;
+  }
+  .assertions-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text3);
+    flex-shrink: 0;
+  }
+  .assertion-input {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 5px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 4px 8px;
+    outline: none;
+    flex: 1;
+    transition: border-color 0.15s;
+  }
+  .assertion-input::placeholder { color: var(--text3); }
+  .assertion-input:focus { border-color: var(--accent); }
+  .assertion-add-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 5px;
+    color: var(--text2);
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    padding: 2px 8px;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .assertion-add-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .assertion-list { display: flex; flex-direction: column; gap: 3px; }
+  .assertion-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    animation: fadeIn 0.15s ease;
+  }
+  .assertion-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text2);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .assertion-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    white-space: nowrap;
+    max-width: 130px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .assertion-badge.notrun { background: var(--surface3); color: var(--text3); }
+  .assertion-badge.pass   { background: var(--green-dim); color: var(--green); }
+  .assertion-badge.fail   { background: var(--red-dim);   color: var(--red);   }
+  .assertion-del {
+    background: transparent;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    padding: 0 3px;
+    transition: color 0.15s;
+    flex-shrink: 0;
+  }
+  .assertion-del:hover { color: var(--red); }
+
   .output-pane {
     overflow-y: auto;
     padding: 16px;
@@ -394,6 +484,21 @@
     word-break: break-all;
     white-space: pre-wrap;
   }
+  .out-assert-btn {
+    background: transparent;
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    color: var(--text3);
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    padding: 2px 6px;
+    transition: all 0.15s;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+  .out-assert-btn:hover { border-color: var(--green); color: var(--green); }
+  .out-assert-btn.added { border-color: var(--green); color: var(--green); opacity: 0.7; cursor: default; }
 
   /* console log */
   .console-row {
@@ -1144,6 +1249,15 @@
       <span class="pane-label">Output</span>
       <span class="badge-count" id="ctx-write-count" style="display:none"></span>
     </div>
+    <div id="assertions-panel" class="assertions-panel">
+      <div class="assertions-header">
+        <span class="assertions-label">Assertions</span>
+        <input id="assertion-input" class="assertion-input" placeholder="context.foo = true  or  context.foo" onkeydown="if(event.key==='Enter') addAssertion()">
+        <button class="assertion-add-btn" onclick="addAssertion()" title="Add assertion">+</button>
+      </div>
+      <div id="assertion-list" class="assertion-list"></div>
+    </div>
+
     <div class="output-pane" id="output-pane">
       <div class="output-empty" id="output-empty">
         <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
@@ -1538,11 +1652,16 @@ function runCode() {
 
   // Render results
   renderOutput({ contextWrites, consoleLogs, context, input, profile, runError });
+  renderAssertions(evaluateAssertions(context, profile));
 
   if (runError) {
     setStatus('error', 'Error');
   } else {
-    setStatus('ok', `OK - ${contextWrites.length} write${contextWrites.length !== 1 ? 's' : ''}`);
+    const assertResults = evaluateAssertions(context, profile);
+    const aPass = assertResults.filter(r => r.pass).length;
+    const aTotal = assertResults.length;
+    const assertNote = aTotal ? ` · ${aPass}/${aTotal} assertions` : '';
+    setStatus('ok', `OK - ${contextWrites.length} write${contextWrites.length !== 1 ? 's' : ''}${assertNote}`);
   }
 }
 
@@ -1575,12 +1694,17 @@ function renderOutput({ contextWrites, consoleLogs, context, input, profile, run
         const typeStr = w.value === null ? 'null' : typeof w.value;
         const opColor = w.op === 'delete' || w.op === 'remove' || w.op === 'resetContext'
           ? 'var(--red)' : 'var(--green)';
+        const assertText = buildWriteAssertionText(w.path, w.value, w.op);
+        const assertBtn  = assertText
+          ? `<button class="out-assert-btn" data-assert="${escHtml(assertText)}" onclick="addWriteToAssertions(this)" title="Add to assertions">+ assert</button>`
+          : '';
         html += `
           <div class="out-row">
             <div class="out-row-key">
               <span class="out-row-key-text">context.${w.path}</span>
               <span class="out-type-badge" style="color:${opColor};border-color:${opColor}33">${w.op}</span>
               <span class="out-type-badge">${typeStr}</span>
+              ${assertBtn}
             </div>
             <div class="out-row-val">${escHtml(valStr)}</div>
           </div>`;
@@ -1661,6 +1785,168 @@ function clearAll() {
   document.querySelectorAll('.tab-content').forEach((t,i) => t.classList.toggle('active', i===0));
 }
 
+// ─── assertions ───────────────────────────────────────────────────────────────
+
+const _assertionsKey      = 'sandbox_v1_assertions';
+let   _lastAssertionResults = null;
+let   _editingAssertionIdx  = null;
+
+function _loadAssertions() { try { return JSON.parse(localStorage.getItem(_assertionsKey)) || []; } catch { return []; } }
+function _persistAssertions(a) { localStorage.setItem(_assertionsKey, JSON.stringify(a)); }
+
+function addAssertion() {
+  const input = document.getElementById('assertion-input');
+  const text  = (input.value || '').trim();
+  if (!text) { input.focus(); return; }
+  const assertions = _loadAssertions();
+  assertions.push(text);
+  _persistAssertions(assertions);
+  input.value = '';
+  _editingAssertionIdx = null;
+  renderAssertions();
+}
+
+function removeAssertion(index) {
+  const assertions = _loadAssertions();
+  assertions.splice(index, 1);
+  _persistAssertions(assertions);
+  if (_editingAssertionIdx === index) _editingAssertionIdx = null;
+  renderAssertions();
+}
+
+function renderAssertions(results) {
+  if (results !== undefined) _lastAssertionResults = results;
+  const assertions = _loadAssertions();
+  const list = document.getElementById('assertion-list');
+  if (!list) return;
+  if (!assertions.length) { list.innerHTML = ''; _editingAssertionIdx = null; return; }
+
+  list.innerHTML = assertions.map((a, i) => {
+    const r = _lastAssertionResults ? _lastAssertionResults[i] : null;
+    let badge = '<span class="assertion-badge notrun">—</span>';
+    if (r) {
+      const actualStr = r.actual === undefined ? 'undefined' : r.actual === null ? 'null' : String(r.actual);
+      const truncated = actualStr.length > 18 ? actualStr.slice(0, 16) + '…' : actualStr;
+      badge = r.pass
+        ? `<span class="assertion-badge pass">✓ ${_escHtml(truncated)}</span>`
+        : `<span class="assertion-badge fail">✗ ${_escHtml(truncated)}</span>`;
+    }
+    if (_editingAssertionIdx === i) {
+      return `<div class="assertion-row">
+        <input class="assertion-input" id="assert-edit-${i}" value="${_escHtml(a)}"
+          onkeydown="if(event.key==='Enter')saveEditAssertion(${i});else if(event.key==='Escape')cancelEditAssertion()">
+        ${badge}
+        <button class="assertion-del" onclick="saveEditAssertion(${i})" title="Save (Enter)">✓</button>
+        <button class="assertion-del" onclick="cancelEditAssertion()" title="Cancel (Esc)">✕</button>
+      </div>`;
+    }
+    return `<div class="assertion-row">
+      <span class="assertion-text" onclick="startEditAssertion(${i})" title="Click to edit" style="cursor:pointer">${_escHtml(a)}</span>
+      ${badge}
+      <button class="assertion-del" onclick="removeAssertion(${i})" title="Remove">×</button>
+    </div>`;
+  }).join('');
+
+  if (_editingAssertionIdx !== null) {
+    const inp = document.getElementById(`assert-edit-${_editingAssertionIdx}`);
+    if (inp) { inp.focus(); inp.select(); }
+  }
+}
+
+function startEditAssertion(index) {
+  _editingAssertionIdx = index;
+  renderAssertions();
+}
+
+function saveEditAssertion(index) {
+  const inp  = document.getElementById(`assert-edit-${index}`);
+  const text = inp ? inp.value.trim() : '';
+  if (!text) { cancelEditAssertion(); return; }
+  const assertions = _loadAssertions();
+  assertions[index] = text;
+  _persistAssertions(assertions);
+  _editingAssertionIdx  = null;
+  _lastAssertionResults = null;
+  renderAssertions();
+}
+
+function cancelEditAssertion() {
+  _editingAssertionIdx = null;
+  renderAssertions();
+}
+
+function buildWriteAssertionText(path, value, op) {
+  if (op === 'delete' || op === 'remove' || op === 'resetContext' || op === 'updateProfile') return null;
+  const prefix = `context.${path}`;
+  if (value === null)            return `${prefix} = null`;
+  if (typeof value === 'boolean') return `${prefix} = ${value}`;
+  if (typeof value === 'number')  return `${prefix} = ${value}`;
+  if (typeof value === 'string')  return `${prefix} = "${value.replace(/\\/g,'\\\\').replace(/"/g,'\\"')}"`;
+  return prefix; // object/array — existence check only
+}
+
+function addWriteToAssertions(btn) {
+  const text = btn.dataset.assert;
+  if (!text) return;
+  const newPath  = text.split('=')[0].trim();
+  const assertions = _loadAssertions();
+  const idx = assertions.findIndex(a => a.split('=')[0].trim() === newPath);
+  if (idx !== -1) {
+    assertions[idx] = text;
+  } else {
+    assertions.push(text);
+  }
+  _persistAssertions(assertions);
+  btn.textContent = '✓ added';
+  btn.classList.add('added');
+  btn.disabled = true;
+  renderAssertions();
+}
+
+function _resolvePath(path, context, profile) {
+  const parts = path.trim().split('.');
+  const root  = parts[0];
+  const obj   = root === 'context' ? context : root === 'profile' ? profile : undefined;
+  if (obj === undefined) return undefined;
+  return parts.slice(1).reduce((o, k) => (o != null && Object.prototype.hasOwnProperty.call(Object(o), k) ? o[k] : undefined), obj);
+}
+
+function _parseExpected(str) {
+  const s = str.trim();
+  if (s === 'true')  return true;
+  if (s === 'false') return false;
+  if (s === 'null')  return null;
+  if (s === 'undefined') return undefined;
+  const n = Number(s);
+  if (s !== '' && !isNaN(n)) return n;
+  if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) return s.slice(1, -1);
+  return s;
+}
+
+function _valEqual(a, b) {
+  if (a === b) return true;
+  if (a == null || b == null) return a === b;
+  if (typeof a !== typeof b) return false;
+  if (typeof a === 'object') { try { return JSON.stringify(a) === JSON.stringify(b); } catch { return false; } }
+  return false;
+}
+
+function evaluateAssertions(context, profile) {
+  return _loadAssertions().map(a => {
+    const eqIdx = a.indexOf('=');
+    if (eqIdx !== -1) {
+      const path   = a.slice(0, eqIdx).trim();
+      const expStr = a.slice(eqIdx + 1).trim();
+      const actual = _resolvePath(path, context, profile);
+      const expected = _parseExpected(expStr);
+      return { text: a, pass: _valEqual(actual, expected), actual };
+    } else {
+      const actual = _resolvePath(a.trim(), context, profile);
+      return { text: a, pass: actual !== undefined && actual !== null, actual };
+    }
+  });
+}
+
 // ─── generate session IDs ─────────────────────────────────────────────────────
 
 function generateSessionIds() {
@@ -1698,6 +1984,7 @@ _prefersDark.addEventListener('change', () => {
 });
 
 _applyTheme(_themeMode);
+renderAssertions();
 
 // ─── paste dependency scanner ────────────────────────────────────────────────
 
@@ -2131,9 +2418,10 @@ function runAllScenarios(saveId) {
     const profileInit = parseStr(sc.profile);
     if (inputObj === null || ctxInit === null || profileInit === null) {
       return { scenarioName: sc.name, contextWrites:[], consoleLogs:[], context:{}, input:{}, profile:{},
-               runError: new Error('Invalid JSON in scenario data') };
+               runError: new Error('Invalid JSON in scenario data'), assertionResults: [] };
     }
-    return { scenarioName: sc.name, ..._executionEngine(save.code, inputObj, ctxInit, profileInit) };
+    const r = _executionEngine(save.code, inputObj, ctxInit, profileInit);
+    return { scenarioName: sc.name, ...r, assertionResults: evaluateAssertions(r.context, r.profile) };
   });
 
   renderTestResults(save.name, results);
@@ -2141,7 +2429,16 @@ function runAllScenarios(saveId) {
 
 function renderTestResults(saveName, results) {
   const body      = document.getElementById('saves-modal-body');
-  const passCount = results.filter(r => !r.runError).length;
+  const hasAssert = _loadAssertions().length > 0;
+
+  // A scenario passes if: no runtime error AND all assertions pass
+  function scenarioPassed(r) {
+    if (r.runError) return false;
+    if (hasAssert && r.assertionResults && r.assertionResults.some(a => !a.pass)) return false;
+    return true;
+  }
+
+  const passCount = results.filter(scenarioPassed).length;
   const allPass   = passCount === results.length;
 
   body.innerHTML = `
@@ -2151,18 +2448,34 @@ function renderTestResults(saveName, results) {
       <span class="results-badge ${allPass ? 'pass' : 'fail'}">${passCount} / ${results.length} passed</span>
     </div>
     ${results.map((r, i) => {
+      const passed  = scenarioPassed(r);
       const opColor = op => (op==='delete'||op==='remove'||op==='resetContext') ? 'del' : 'add';
       const valStr  = v  => v===null ? 'null' : (typeof v==='object' ? JSON.stringify(v) : String(v));
+      const ar      = r.assertionResults || [];
+      const aPass   = ar.filter(a => a.pass).length;
+      const assertMeta = ar.length ? ` · ${aPass}/${ar.length} assertions` : '';
       return `
-        <div class="sc-result-card ${r.runError ? 'fail' : 'pass'}">
+        <div class="sc-result-card ${passed ? 'pass' : 'fail'}">
           <div class="sc-result-row" onclick="toggleResultDetail('sc-detail-${i}')">
-            <span class="sc-result-status ${r.runError ? 'fail' : 'pass'}">${r.runError ? '✗' : '✓'}</span>
+            <span class="sc-result-status ${passed ? 'pass' : 'fail'}">${passed ? '✓' : '✗'}</span>
             <span class="sc-result-name">${_escHtml(r.scenarioName)}</span>
-            <span class="sc-result-meta">${r.contextWrites.length} writes · ${r.consoleLogs.length} logs${r.runError ? ' · <span class="sc-error-badge">ERROR</span>' : ''}</span>
+            <span class="sc-result-meta">${r.contextWrites.length} writes · ${r.consoleLogs.length} logs${assertMeta}${r.runError ? ' · <span class="sc-error-badge">ERROR</span>' : ''}</span>
             <span class="sc-result-toggle" id="sc-toggle-${i}">▾</span>
           </div>
           <div class="sc-result-detail" id="sc-detail-${i}" style="display:none">
             ${r.runError ? `<div class="sc-error-msg">${_escHtml(r.runError.toString())}</div>` : ''}
+            ${ar.length ? `
+              <div class="sc-detail-section">
+                <div class="sc-detail-label">Assertions</div>
+                ${ar.map(a => {
+                  const actualStr = a.actual === undefined ? 'undefined' : a.actual === null ? 'null' : String(a.actual);
+                  return `<div class="sc-detail-row">
+                    <span class="sc-detail-op ${a.pass ? 'add' : 'del'}">${a.pass ? '✓' : '✗'}</span>
+                    <span class="sc-detail-path">${_escHtml(a.text)}</span>
+                    <span class="sc-detail-val">${_escHtml(actualStr)}</span>
+                  </div>`;
+                }).join('')}
+              </div>` : ''}
             ${r.contextWrites.length ? `
               <div class="sc-detail-section">
                 <div class="sc-detail-label">Context Writes</div>
@@ -2178,12 +2491,12 @@ function renderTestResults(saveName, results) {
                 <div class="sc-detail-label">Console</div>
                 ${r.consoleLogs.map(l => `
                   <div class="sc-detail-row">
-                    <span class="sc-detail-op ${l.level==='error'?'del':l.level==='warn'?'del':'add'}">${l.level}</span>
+                    <span class="sc-detail-op ${l.level==='error'||l.level==='warn'?'del':'add'}">${l.level}</span>
                     <span class="sc-detail-val">${_escHtml(l.msg)}</span>
                   </div>`).join('')}
               </div>` : ''}
-            ${!r.runError && !r.contextWrites.length && !r.consoleLogs.length
-              ? '<div class="sc-detail-empty">No writes or logs.</div>' : ''}
+            ${!r.runError && !r.contextWrites.length && !r.consoleLogs.length && !ar.length
+              ? '<div class="sc-detail-empty">No writes, logs, or assertions.</div>' : ''}
           </div>
         </div>`;
     }).join('')}`;

@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cognigy Code Node Sandbox</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;0,700;1,400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment.min.js"></script>
 <style>
   :root {
     --bg: #07080b;
@@ -25,7 +26,50 @@
     --text2: #8890a8;
     --text3: #454d66;
     --radius: 10px;
+    --code-color: #c9d1e8;
+    --json-color: #4a9f6e;
   }
+
+  :root.light {
+    --bg: #f4f5f7;
+    --surface: #ffffff;
+    --surface2: #f0f1f4;
+    --surface3: #e6e8ee;
+    --border: #dde0e8;
+    --border2: #c8ccda;
+    --accent: #6355e0;
+    --accent-glow: rgba(99,85,224,0.15);
+    --green: #00a86b;
+    --green-dim: rgba(0,168,107,0.1);
+    --red: #e8334a;
+    --red-dim: rgba(232,51,74,0.08);
+    --yellow: #d4820a;
+    --yellow-dim: rgba(212,130,10,0.1);
+    --text: #1a1d2e;
+    --text2: #4a5068;
+    --text3: #9098b0;
+    --code-color: #2d3250;
+    --json-color: #1a7a48;
+  }
+
+  /* ── theme toggle ── */
+  .theme-toggle {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    transition: all 0.2s;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text2);
+  }
+  .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+  .theme-toggle .icon { font-size: 13px; line-height: 1; transition: transform 0.3s; }
+  :root.light .theme-toggle .icon { transform: rotate(180deg); }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -178,7 +222,7 @@
     height: 100%;
     background: var(--bg);
     border: none;
-    color: #c9d1e8;
+    color: var(--code-color);
     font-family: 'JetBrains Mono', monospace;
     font-size: 12.5px;
     line-height: 1.7;
@@ -232,7 +276,7 @@
     width: 100%;
     background: var(--bg);
     border: none;
-    color: #a8d8a8;
+    color: var(--json-color);
     font-family: 'JetBrains Mono', monospace;
     font-size: 12px;
     line-height: 1.65;
@@ -479,6 +523,10 @@
   <div class="app-title">Cognigy Code Node Sandbox <span>// NiCE ProServ</span></div>
   <div class="topbar-spacer"></div>
   <span id="status-pill" class="status-pill idle">Idle</span>
+  <button class="theme-toggle" onclick="toggleTheme()" title="Toggle day/night theme">
+    <span class="icon">🌙</span>
+    <span id="theme-label">Night</span>
+  </button>
   <button class="clear-btn" onclick="clearAll()">Clear</button>
   <button class="run-btn" onclick="runCode()">
     <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -515,7 +563,7 @@ api.addToContext('test', 'Hello from the sandbox!', 'simple');
   <div class="pane">
     <div class="pane-header">
       <div class="pane-icon yellow"></div>
-      <span class="pane-label">Input Data</span>
+      <span class="pane-label">Data</span>
     </div>
     <div class="pane-body pane-right-label">
 
@@ -804,9 +852,9 @@ function runCode() {
 
   let runError = null;
   try {
-    // Execute — inject context, input, profile, api as locals
-    const fn = new Function('context', 'input', 'profile', 'api', code);
-    fn(context, input, profile, api);
+    // Execute — inject context, input, profile, api, and moment as locals
+    const fn = new Function('context', 'input', 'profile', 'api', 'moment', code);
+    fn(context, input, profile, api, moment);
   } catch(e) {
     runError = e;
   } finally {
@@ -930,6 +978,13 @@ function clearAll() {
   // reset to first tab
   document.querySelectorAll('.out-tab').forEach((t,i) => t.classList.toggle('active', i===0));
   document.querySelectorAll('.tab-content').forEach((t,i) => t.classList.toggle('active', i===0));
+}
+
+// ─── theme toggle ─────────────────────────────────────────────────────────────
+
+function toggleTheme() {
+  const isLight = document.documentElement.classList.toggle('light');
+  document.getElementById('theme-label').textContent = isLight ? 'Day' : 'Night';
 }
 
 // ─── keyboard shortcut ───────────────────────────────────────────────────────

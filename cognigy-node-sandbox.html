@@ -701,19 +701,19 @@ api.addToContext('test', 'Hello from the sandbox!', 'simple');
     </div>
     <div class="pane-body pane-right-label">
 
-      <!-- input.data -->
-      <div class="json-section" style="flex:1.2">
+      <!-- input -->
+      <div class="json-section" style="flex:2">
         <div class="json-section-header">
-          <span class="json-section-label">input.data</span>
+          <span class="json-section-label">input</span>
           <span class="json-err" id="err-input">invalid json</span>
         </div>
-        <textarea class="json-editor" id="json-input" spellcheck="false" placeholder='{ "request": { "estimatedWaitTime": 420000, "position": 5 } }'></textarea>
+        <textarea class="json-editor" id="json-input" spellcheck="false" placeholder='{ "text": "", "data": { "request": { "estimatedWaitTime": 420000 } } }'></textarea>
       </div>
 
       <!-- context -->
       <div class="json-section" style="flex:1">
         <div class="json-section-header">
-          <span class="json-section-label">context (initial state)</span>
+          <span class="json-section-label">context</span>
           <span class="json-err" id="err-context">invalid json</span>
         </div>
         <textarea class="json-editor" id="json-context" spellcheck="false" placeholder='{ "configuration": { "env": "dev" } }'></textarea>
@@ -727,21 +727,6 @@ api.addToContext('test', 'Hello from the sandbox!', 'simple');
         </div>
         <textarea class="json-editor" id="json-profile" spellcheck="false" placeholder="{}">{}
 </textarea>
-      </div>
-
-      <!-- input meta (non-data fields) -->
-      <div class="json-section" style="flex:0.8">
-        <div class="json-section-header">
-          <span class="json-section-label">input (meta fields)</span>
-          <span class="json-err" id="err-inputmeta">invalid json</span>
-        </div>
-        <textarea class="json-editor" id="json-inputmeta" spellcheck="false" placeholder='{ "text": "hello", "sessionId": "abc123" }'>{
-  "text": "",
-  "sessionId": "sandbox-session-001",
-  "userId": "sandbox-user-001",
-  "flowName": "Main Flow",
-  "URLToken": "dev"
-}</textarea>
       </div>
 
     </div>
@@ -838,8 +823,8 @@ function parseJson(id, errId) {
 }
 
 // live JSON validation
-['json-input','json-context','json-profile','json-inputmeta'].forEach((id, i) => {
-  const errIds = ['err-input','err-context','err-profile','err-inputmeta'];
+['json-input','json-context','json-profile'].forEach((id, i) => {
+  const errIds = ['err-input','err-context','err-profile'];
   document.getElementById(id).addEventListener('input', () => {
     parseJson(id, errIds[i]);
   });
@@ -851,8 +836,7 @@ const _storageKeys = {
   'code-editor':  'sandbox_v1_code',
   'json-input':   'sandbox_v1_input',
   'json-context': 'sandbox_v1_context',
-  'json-profile': 'sandbox_v1_profile',
-  'json-inputmeta': 'sandbox_v1_inputmeta'
+  'json-profile': 'sandbox_v1_profile'
 };
 
 (function restoreFromStorage() {
@@ -904,14 +888,13 @@ function runCode() {
 
   setStatus('running', 'Running...');
 
-  const inputData   = parseJson('json-input', 'err-input');
+  const inputObj    = parseJson('json-input', 'err-input');
   const ctxInit     = parseJson('json-context', 'err-context');
   const profileInit = parseJson('json-profile', 'err-profile');
-  const inputMeta   = parseJson('json-inputmeta', 'err-inputmeta');
 
-  if (inputData === null || ctxInit === null || profileInit === null || inputMeta === null) {
+  if (inputObj === null || ctxInit === null || profileInit === null) {
     setStatus('error', 'JSON Error');
-    showError('Fix JSON errors in the Input Data panel before running.');
+    showError('Fix JSON errors in the data panels before running.');
     return;
   }
 
@@ -919,7 +902,7 @@ function runCode() {
   const context = JSON.parse(JSON.stringify(ctxInit));
   const profile = JSON.parse(JSON.stringify(profileInit));
 
-  // Build the input object
+  // Build the input object — user-defined values override defaults; currentTime auto-populates if not set
   const input = Object.assign({
     text: '',
     sessionId: 'sandbox-session-001',
@@ -927,7 +910,8 @@ function runCode() {
     flowName: 'Main Flow',
     URLToken: 'dev',
     currentTime: { plain: new Date().toISOString() }
-  }, inputMeta, { data: inputData });
+  }, inputObj);
+  if (!input.data || typeof input.data !== 'object') input.data = {};
 
   // Track context writes
   const contextWrites = [];
@@ -1141,11 +1125,20 @@ function switchOutTab(btn, tabId) {
 }
 
 function clearAll() {
+  // Clear editors
+  ['code-editor', 'json-input', 'json-context', 'json-profile'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('json-profile').value = '{}';
+
+  // Clear localStorage
+  Object.values(_storageKeys).forEach(key => localStorage.removeItem(key));
+
+  // Reset output panel
   document.getElementById('output-empty').style.display = 'flex';
   document.getElementById('output-content').style.display = 'none';
   document.getElementById('ctx-write-count').style.display = 'none';
   setStatus('idle', 'Idle');
-  // reset to first tab
   document.querySelectorAll('.out-tab').forEach((t,i) => t.classList.toggle('active', i===0));
   document.querySelectorAll('.tab-content').forEach((t,i) => t.classList.toggle('active', i===0));
 }
@@ -1228,12 +1221,12 @@ function scanCodeForDependencies(code) {
 
 function findMissingDependencies({ contextPaths, inputDataPaths, inputMetaPaths }) {
   const ctxObj   = parseJsonSilent('json-context');
-  const dataObj  = parseJsonSilent('json-input');
-  const metaObj  = parseJsonSilent('json-inputmeta');
+  const inputObj = parseJsonSilent('json-input');
+  const dataObj  = inputObj.data || {};
   return {
     context:   contextPaths.filter(p  => deepGet(ctxObj,  p) === undefined),
     inputData: inputDataPaths.filter(p => deepGet(dataObj, p) === undefined),
-    inputMeta: inputMetaPaths.filter(p => deepGet(metaObj, p) === undefined)
+    inputMeta: inputMetaPaths.filter(p => deepGet(inputObj, p) === undefined)
   };
 }
 
@@ -1270,17 +1263,31 @@ function handleModalOverlayClick(e) {
 
 function autoAddDependencies() {
   if (!_pendingDeps) return;
-  function addToEditor(editorId, errId, paths) {
-    if (!paths.length) return;
-    const el  = document.getElementById(editorId);
-    const obj = parseJsonSilent(editorId);
-    paths.forEach(p => { if (deepGet(obj, p) === undefined) deepSet(obj, p, null); });
+
+  // Context
+  if (_pendingDeps.context.length) {
+    const el = document.getElementById('json-context');
+    const obj = parseJsonSilent('json-context');
+    _pendingDeps.context.forEach(p => { if (deepGet(obj, p) === undefined) deepSet(obj, p, null); });
     el.value = JSON.stringify(obj, null, 2);
-    parseJson(editorId, errId);
+    parseJson('json-context', 'err-context');
   }
-  addToEditor('json-context',   'err-context',   _pendingDeps.context);
-  addToEditor('json-input',     'err-input',     _pendingDeps.inputData);
-  addToEditor('json-inputmeta', 'err-inputmeta', _pendingDeps.inputMeta);
+
+  // Input — data.* paths and meta paths both go into json-input
+  if (_pendingDeps.inputData.length || _pendingDeps.inputMeta.length) {
+    const el = document.getElementById('json-input');
+    const obj = parseJsonSilent('json-input');
+    _pendingDeps.inputData.forEach(p => {
+      const full = `data.${p}`;
+      if (deepGet(obj, full) === undefined) deepSet(obj, full, null);
+    });
+    _pendingDeps.inputMeta.forEach(p => {
+      if (deepGet(obj, p) === undefined) deepSet(obj, p, null);
+    });
+    el.value = JSON.stringify(obj, null, 2);
+    parseJson('json-input', 'err-input');
+  }
+
   dismissPasteModal();
 }
 

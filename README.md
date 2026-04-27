@@ -2,12 +2,6 @@
 
 A browser-based tool for testing Cognigy Code Node JavaScript before deploying it to a live agent. Open the file, paste your code, configure the conversation state, and see exactly what your code does — no Cognigy login, no deployment, no setup required.
 
-Built by **Daniel Tucker, Senior Solutions Architect — NiCE ProServ**.
-
-For planned features, see [ROADMAP.md](ROADMAP.md).
-
----
-
 ![App overview](images/app-view.png)
 
 ---
@@ -17,8 +11,6 @@ For planned features, see [ROADMAP.md](ROADMAP.md).
 Testing a Code Node normally means deploying to a live agent, triggering a conversation, and inspecting logs — a slow loop that makes it difficult to test edge cases or reproduce bugs reliably.
 
 The sandbox removes that friction. You set up the exact conversation state you want to test, run the code, and immediately see every context change, console message, and error. You can save multiple test cases and run them all at once, with automatic pass/fail results.
-
----
 
 ## Getting started
 
@@ -76,7 +68,7 @@ After a run, the **Output** panel shows three tabs:
 
 **Console** — everything your code printed with `console.log`, `console.warn`, or `console.error`, plus any Cognigy API calls like `api.say()` or `api.handover()`.
 
-**Full State** — the complete `input`, `context`, and `profile` objects as they exist after the run. Use this to verify the full picture, not just the writes.
+**Output** — the complete `input`, `context`, and `profile` objects as they exist after the run. Use this to verify the full picture, not just the writes.
 
 ![Error handling](images/errors.png)
 
@@ -171,6 +163,11 @@ When you paste code into the editor, the sandbox scans it for any `context.*`, `
 **Clear** — resets the code editor and all data panels back to empty. Your saved code and scenarios are not affected.
 
 **Theme** — the toggle in the top bar cycles between Night, Day, and Auto (which follows your system setting). The choice persists across sessions.
+
+---
+
+## Planned Features
+For planned features, see [ROADMAP.md](ROADMAP.md).
 
 ---
 

@@ -1,6 +1,6 @@
 # Cognigy Code Node Sandbox
 
-A browser-based tool for testing Cognigy Code Node's JavaScript before deploying it to a live agent. Open the file, paste your code, configure the conversation state, and see exactly what your code does — no Cognigy login, no deployment, no setup required.
+A browser-based tool for testing Cognigy Code Node's JavaScript before deploying it to a live agent. Open the file, paste your code, configure the conversation state, and see exactly what your code does - no Cognigy login, no deployment, no setup required.
 
 ![App overview](images/app-view.png)
 
@@ -8,13 +8,13 @@ A browser-based tool for testing Cognigy Code Node's JavaScript before deploying
 
 ## Why use this?
 
-Testing a Code Node normally means deploying to a live agent, triggering a conversation, and inspecting logs — a slow loop that makes it difficult to test edge cases or reproduce bugs reliably.
+Testing a Code Node normally means deploying to a live agent, triggering a conversation, and inspecting logs - a slow loop that makes it difficult to test edge cases or reproduce bugs reliably.
 
 The sandbox removes that friction. You set up the exact conversation state you want to test, run the code, and immediately see every context change, console message, and error. You can save multiple test cases and run them all at once, with automatic pass/fail results.
 
 ## Getting started
 
-Download `cognigy-node-sandbox.html` and open it in any modern browser. That's it — no installation, no account, nothing to configure.
+Download `cognigy-node-sandbox.html` and open it in any modern browser. That's it - no installation, no account, nothing to configure.
 
 The workspace has three panels side by side:
 
@@ -44,7 +44,7 @@ The **Data** panel has three sections, each representing a different part of the
 
 ### Input
 
-This is the `input` object your code will receive — the same object available inside a real Code Node. Set it to whatever the conversation state would look like at the point your Code Node runs.
+This is the `input` object your code will receive - the same object available inside a real Code Node. Set it to whatever the conversation state would look like at the point your Code Node runs.
 
 Use the **Gen IDs** button to automatically generate unique session and user IDs if you haven't set them.
 
@@ -64,11 +64,11 @@ The contact profile. If your code reads from or writes to the profile, set the s
 
 After a run, the **Output** panel shows three tabs:
 
-**Context Writes** — every change your code made to context or profile, listed in order. For each write you can see the path that was set, the value, and the operation type (set, delete, etc.). If your code raised an error, it appears here too.
+**Context Writes** - every change your code made to context or profile, listed in order. For each write you can see the path that was set, the value, and the operation type (set, delete, etc.). If your code raised an error, it appears here too.
 
-**Console** — everything your code printed with `console.log`, `console.warn`, or `console.error`, plus any Cognigy API calls like `api.say()` or `api.handover()`.
+**Console** - everything your code printed with `console.log`, `console.warn`, or `console.error`, plus any Cognigy API calls like `api.say()` or `api.handover()`.
 
-**Output** — the complete `input`, `context`, and `profile` objects as they exist after the run. Use this to verify the full picture, not just the writes.
+**Output** - the complete `input`, `context`, and `profile` objects as they exist after the run. Use this to verify the full picture, not just the writes.
 
 ![Error handling](images/errors.png)
 
@@ -76,14 +76,14 @@ After a run, the **Output** panel shows three tabs:
 
 ## Saving test cases
 
-The **Saves** button in the top bar opens the test case manager. This is useful when you want to test the same Code Node against different scenarios — for example, a happy path, a missing-data case, and an error case.
+The **Saves** button in the top bar opens the test case manager. This is useful when you want to test the same Code Node against different scenarios - for example, a happy path, a missing-data case, and an error case.
 
 ### How it works
 
 Saves have two levels:
 
-- **Code save** — a named version of your Code Node JavaScript (e.g. "Get Account Status")
-- **Scenario** — a named snapshot of your Input, Context, and Profile data attached to a code save (e.g. "Happy path", "Missing account ID")
+- **Code save** - a named version of your Code Node JavaScript (e.g. "Get Account Status")
+- **Scenario** - a named snapshot of your Input, Context, and Profile data attached to a code save (e.g. "Happy path", "Missing account ID")
 
 This means you write the code once and attach as many data configurations as you need.
 
@@ -103,8 +103,8 @@ The current data is saved under that name. Repeat for each test scenario you wan
 
 | Action | What it loads |
 |---|---|
-| **Load code** | The saved JavaScript — your data panels stay as they are |
-| **Load** (on a scenario) | The saved Input, Context, and Profile — your code stays as it is |
+| **Load code** | The saved JavaScript - your data panels stay as they are |
+| **Load** (on a scenario) | The saved Input, Context, and Profile - your code stays as it is |
 
 ### Running all scenarios at once
 
@@ -120,7 +120,7 @@ Assertions let you define what a successful run looks like. Instead of manually 
 
 ![Assertions panel](images/assertions.png)
 
-The **Assertions** panel sits at the top of the Output pane. After every run — single or batch — each assertion shows whether it passed or failed, and what the actual value was.
+The **Assertions** panel sits at the top of the Output pane. After every run - single or batch - each assertion shows whether it passed or failed, and what the actual value was.
 
 ### Writing assertions
 
@@ -138,7 +138,7 @@ Use `context.` or `profile.` as the prefix, followed by the variable path.
 
 ### Capturing assertions from a run
 
-After a run, each row in the Context Writes tab has a **+ assert** button. Clicking it creates an assertion pre-filled with the path and the value that was written — no typing needed. If an assertion for that path already exists, it updates to the new value.
+After a run, each row in the Context Writes tab has a **+ assert** button. Clicking it creates an assertion pre-filled with the path and the value that was written - no typing needed. If an assertion for that path already exists, it updates to the new value.
 
 ### Editing assertions
 
@@ -152,7 +152,7 @@ Each scenario is evaluated against your assertions individually. A scenario only
 
 ## Paste detection
 
-When you paste code into the editor, the sandbox scans it for any `context.*`, `input.*`, or `input.data.*` references that aren't yet defined in your data panels. If any are found, a prompt appears listing the missing values with an **Auto-Add All** button — one click adds them as empty placeholders so you can fill them in before running.
+When you paste code into the editor, the sandbox scans it for any `context.*`, `input.*`, or `input.data.*` references that aren't yet defined in your data panels. If any are found, a prompt appears listing the missing values with an **Auto-Add All** button - one click adds them as empty placeholders so you can fill them in before running.
 
 ![Variable detection modal](images/variable-detection.png)
 
@@ -160,13 +160,13 @@ When you paste code into the editor, the sandbox scans it for any `context.*`, `
 
 ## LLM tools
 
-The Code Node panel header has two buttons that build ready-to-use prompts for use with any LLM — claude.ai, Microsoft Copilot, or similar. Clicking either button copies the prompt (with your code included) to the clipboard and shows a confirmation message below the header. Paste it into your LLM of choice to get back results immediately.
+The Code Node panel header has two buttons that build ready-to-use prompts for use with any LLM - claude.ai, Microsoft Copilot, or similar. Clicking either button copies the prompt (with your code included) to the clipboard and shows a confirmation message below the header. Paste it into your LLM of choice to get back results immediately.
 
-No API key or account is needed in the sandbox — it handles the prompt building only.
+No API key or account is needed in the sandbox - it handles the prompt building only.
 
 ### Document with LLM
 
-Instructs the LLM to add inline documentation to your code and return the fully commented result. The code structure is not changed — only comments are added:
+Instructs the LLM to add inline documentation to your code and return the fully commented result. The code structure is not changed - only comments are added:
 
 - A plain-English summary block at the top
 - Inline comments on non-obvious logic
@@ -188,9 +188,9 @@ Each finding includes what the issue is, where it appears, and what the recommen
 
 ## Other controls
 
-**Clear** — resets the code editor and all data panels back to empty. Your saved code and scenarios are not affected.
+**Clear** - resets the code editor and all data panels back to empty. Your saved code and scenarios are not affected.
 
-**Theme** — the toggle in the top bar cycles between Night, Day, and Auto (which follows your system setting). The choice persists across sessions.
+**Theme** - the toggle in the top bar cycles between Night, Day, and Auto (which follows your system setting). The choice persists across sessions.
 
 ---
 
@@ -201,8 +201,8 @@ For planned features, see [ROADMAP.md](ROADMAP.md).
 
 ## What the sandbox can't do
 
-- **No HTTP calls** — `api.httpRequest()` is not implemented. Simulate API responses by adding the expected result directly to the Input panel under the relevant key.
-- **No async code** — Code using `await` or Promises will not behave correctly. The sandbox runs synchronously.
-- **No NLU** — intent matching and slot filling are not simulated.
-- **Extension node results** — results from extension nodes (e.g. `input.getAccountStatus`) need to be added manually as top-level keys in the Input panel.
-- **Single turn only** — the sandbox runs your code once. To test multi-turn logic, set up the context manually between runs.
+- **No HTTP calls** - `api.httpRequest()` is not implemented. Simulate API responses by adding the expected result directly to the Input panel under the relevant key.
+- **No async code** - Code using `await` or Promises will not behave correctly. The sandbox runs synchronously.
+- **No NLU** - intent matching and slot filling are not simulated.
+- **Extension node results** - results from extension nodes (e.g. `input.getAccountStatus`) need to be added manually as top-level keys in the Input panel.
+- **Single turn only** - the sandbox runs your code once. To test multi-turn logic, set up the context manually between runs.

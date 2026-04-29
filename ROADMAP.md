@@ -18,19 +18,6 @@ The encoding would use URL-safe base64 or LZ-string compression to keep URLs rea
 
 ---
 
-### LLM: document code
-
-Connect to an LLM (configurable API key, stored in `localStorage`) to automatically generate documentation for the code in the editor. Output would include:
-
-- A plain-English summary of what the code does
-- A list of context variables it reads and writes
-- A list of input fields it depends on
-- Any side effects (API calls, profile updates, etc.)
-
-Useful for handing off Code Nodes to other developers or documenting an existing agent.
-
----
-
 ### LLM: review code
 
 Connect to an LLM to review the code in the editor against Cognigy best practices. Output would flag issues such as:
@@ -46,6 +33,14 @@ Results would appear in a new **Review** tab in the Output pane alongside the ex
 ---
 
 ## Completed
+
+### LLM: document code
+
+A **Document with LLM** button in the Code Node panel header generates a prompt — with the current code embedded — and copies it to the clipboard. Paste it into any LLM (claude.ai, Copilot, etc.) to receive the code back with a plain-English summary comment block at the top and concise inline comments added where the logic is non-obvious.
+
+No API key or direct LLM connection is required — the sandbox handles the prompt building; the user supplies the LLM.
+
+---
 
 ### Saves and scenario testing
 

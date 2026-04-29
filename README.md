@@ -158,6 +158,21 @@ When you paste code into the editor, the sandbox scans it for any `context.*`, `
 
 ---
 
+## Documenting your code
+
+The **Document with LLM** button in the Code Node panel header builds a ready-to-use prompt that instructs an LLM to add inline documentation to your code and return the fully documented result.
+
+Clicking the button copies the prompt — with your code included — to your clipboard. A confirmation message appears below the header. Paste it directly into claude.ai, Microsoft Copilot, or any other LLM your team uses.
+
+The LLM will return your code unchanged in structure, with:
+- A plain-English summary comment block at the top
+- Inline comments explaining non-obvious logic
+- Notes on what each context variable read and write is for
+
+No API key or account is needed — the sandbox handles no AI processing itself.
+
+---
+
 ## Other controls
 
 **Clear** — resets the code editor and all data panels back to empty. Your saved code and scenarios are not affected.

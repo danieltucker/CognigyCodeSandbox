@@ -1,6 +1,6 @@
 # Cognigy Code Node Sandbox
 
-A browser-based tool for testing Cognigy Code Node JavaScript before deploying it to a live agent. Open the file, paste your code, configure the conversation state, and see exactly what your code does — no Cognigy login, no deployment, no setup required.
+A browser-based tool for testing Cognigy Code Node's JavaScript before deploying it to a live agent. Open the file, paste your code, configure the conversation state, and see exactly what your code does — no Cognigy login, no deployment, no setup required.
 
 ![App overview](images/app-view.png)
 

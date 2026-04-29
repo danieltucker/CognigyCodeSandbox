@@ -158,18 +158,31 @@ When you paste code into the editor, the sandbox scans it for any `context.*`, `
 
 ---
 
-## Documenting your code
+## LLM tools
 
-The **Document with LLM** button in the Code Node panel header builds a ready-to-use prompt that instructs an LLM to add inline documentation to your code and return the fully documented result.
+The Code Node panel header has two buttons that build ready-to-use prompts for use with any LLM — claude.ai, Microsoft Copilot, or similar. Clicking either button copies the prompt (with your code included) to the clipboard and shows a confirmation message below the header. Paste it into your LLM of choice to get back results immediately.
 
-Clicking the button copies the prompt — with your code included — to your clipboard. A confirmation message appears below the header. Paste it directly into claude.ai, Microsoft Copilot, or any other LLM your team uses.
+No API key or account is needed in the sandbox — it handles the prompt building only.
 
-The LLM will return your code unchanged in structure, with:
-- A plain-English summary comment block at the top
-- Inline comments explaining non-obvious logic
+### Document with LLM
+
+Instructs the LLM to add inline documentation to your code and return the fully commented result. The code structure is not changed — only comments are added:
+
+- A plain-English summary block at the top
+- Inline comments on non-obvious logic
 - Notes on what each context variable read and write is for
 
-No API key or account is needed — the sandbox handles no AI processing itself.
+### Review with LLM
+
+Instructs the LLM to review your code against Cognigy best practices and return a structured report. The review covers:
+
+- Direct context mutation instead of using the `api` methods
+- Missing null checks on `context.*` or `input.*` values that could cause runtime errors
+- Hardcoded values that should come from context or input
+- Silent failure risks and poor error handling
+- Code clarity and general quality improvements
+
+Each finding includes what the issue is, where it appears, and what the recommended fix is.
 
 ---
 

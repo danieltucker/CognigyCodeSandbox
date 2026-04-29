@@ -1207,10 +1207,15 @@
       <div class="pane-icon purple"></div>
       <span class="pane-label">Code Node</span>
       <button class="panel-btn" id="copy-doc-btn" onclick="copyDocPrompt()" title="Copy a prompt to document this code with an LLM">Document with LLM</button>
+      <button class="panel-btn" id="copy-review-btn" onclick="copyReviewPrompt()" title="Copy a prompt to review this code with an LLM">Review with LLM</button>
     </div>
     <div id="doc-notice" class="doc-notice">
       <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="1.5,6 4.5,9 10.5,3"/></svg>
       Prompt copied — paste into your LLM to get back your code with documentation added
+    </div>
+    <div id="review-notice" class="doc-notice">
+      <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="1.5,6 4.5,9 10.5,3"/></svg>
+      Prompt copied — paste into your LLM to get a code review with recommendations
     </div>
     <div class="pane-body">
       <div id="code-editor" class="ace-editor-container"></div>
@@ -1998,6 +2003,35 @@ ${code}
 
   navigator.clipboard.writeText(prompt).then(() => {
     const notice = document.getElementById('doc-notice');
+    notice.classList.add('visible');
+    setTimeout(() => notice.classList.remove('visible'), 5000);
+  });
+}
+
+// ─── copy review prompt ───────────────────────────────────────────────────────
+
+function copyReviewPrompt() {
+  const code = getEditorValue('code-editor');
+  if (!code.trim()) return;
+
+  const prompt = `Review the following Cognigy Code Node JavaScript against best practices. Return a structured review with clear findings and recommendations.
+
+Check for:
+1. **Context mutation** — is context being mutated directly (e.g. \`context.foo = value\`) instead of using \`api.addToContext()\` or \`api.setContext()\`?
+2. **Null safety** — are \`context.*\`, \`input.*\`, and \`input.data.*\` values read without null or existence checks? Flag any that could cause a runtime error if undefined
+3. **Hardcoded values** — are there values that should come from context or input instead of being hardcoded in the logic?
+4. **Error handling** — is there any logic that could fail silently or leave context in a bad state if something goes wrong?
+5. **Code clarity** — are there any variable names, structures, or patterns that would be confusing to another developer picking this up?
+6. **General improvements** — anything else worth flagging for quality, maintainability, or correctness
+
+For each finding include: what the issue is, where it appears, and what the recommended fix is. If the code looks good in a category, say so briefly.
+
+\`\`\`javascript
+${code}
+\`\`\``;
+
+  navigator.clipboard.writeText(prompt).then(() => {
+    const notice = document.getElementById('review-notice');
     notice.classList.add('visible');
     setTimeout(() => notice.classList.remove('visible'), 5000);
   });

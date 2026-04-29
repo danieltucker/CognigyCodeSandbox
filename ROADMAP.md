@@ -18,27 +18,15 @@ The encoding would use URL-safe base64 or LZ-string compression to keep URLs rea
 
 ---
 
-### LLM: review code
-
-Connect to an LLM to review the code in the editor against Cognigy best practices. Output would flag issues such as:
-
-- Direct context mutation instead of `api.addToContext()`
-- Missing null checks on `context.*` or `input.*` values
-- Synchronous patterns that would break in an async context
-- Hardcoded values that should come from context or input
-- General code quality and readability improvements
-
-Results would appear in a new **Review** tab in the Output pane alongside the existing Context Writes, Console, and Full State tabs.
-
----
-
 ## Completed
 
-### LLM: document code
+### LLM prompt tools
 
-A **Document with LLM** button in the Code Node panel header generates a prompt — with the current code embedded — and copies it to the clipboard. Paste it into any LLM (claude.ai, Copilot, etc.) to receive the code back with a plain-English summary comment block at the top and concise inline comments added where the logic is non-obvious.
+Two buttons in the Code Node panel header — **Document with LLM** and **Review with LLM** — each build a ready-to-use prompt with the current code embedded and copy it to the clipboard. Paste into any LLM (claude.ai, Copilot, etc.) to get results immediately. No API key or direct LLM connection required.
 
-No API key or direct LLM connection is required — the sandbox handles the prompt building; the user supplies the LLM.
+**Document with LLM** returns the code unchanged in structure with a plain-English summary comment block at the top and concise inline comments added where the logic is non-obvious.
+
+**Review with LLM** returns a structured review covering direct context mutation, missing null checks, hardcoded values, error handling risks, and general code quality — with specific findings, locations, and recommended fixes.
 
 ---
 

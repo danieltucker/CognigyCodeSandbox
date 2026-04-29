@@ -297,6 +297,21 @@
   }
   .panel-btn:hover { border-color: var(--accent); color: var(--accent); }
 
+  .doc-notice {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 14px;
+    background: var(--green-dim);
+    border-bottom: 1px solid var(--green);
+    color: var(--green);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.04em;
+  }
+  .doc-notice.visible { display: flex; }
+  .doc-notice svg { flex-shrink: 0; }
+
   .json-err {
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px;
@@ -1191,6 +1206,11 @@
     <div class="pane-header">
       <div class="pane-icon purple"></div>
       <span class="pane-label">Code Node</span>
+      <button class="panel-btn" id="copy-doc-btn" onclick="copyDocPrompt()" title="Copy a prompt to document this code with an LLM">Document with LLM</button>
+    </div>
+    <div id="doc-notice" class="doc-notice">
+      <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="1.5,6 4.5,9 10.5,3"/></svg>
+      Prompt copied — paste into your LLM to get back your code with documentation added
     </div>
     <div class="pane-body">
       <div id="code-editor" class="ace-editor-container"></div>
@@ -1956,6 +1976,31 @@ function generateSessionIds() {
   if (obj.userId == null) { obj.userId = crypto.randomUUID(); changed = true; }
   if (obj.sessionId == null) { obj.sessionId = crypto.randomUUID(); changed = true; }
   if (changed) setEditorValue('json-input', JSON.stringify(obj, null, 2));
+}
+
+// ─── copy doc prompt ──────────────────────────────────────────────────────────
+
+function copyDocPrompt() {
+  const code = getEditorValue('code-editor');
+  if (!code.trim()) return;
+
+  const prompt = `Add inline documentation to the following Cognigy Code Node JavaScript. Return only the fully documented code — no explanation, no markdown wrapper, just the code itself.
+
+Guidelines:
+- Add a short comment block at the top summarising what the code does in plain English
+- Add concise inline comments where the logic is non-obvious — focus on the why, not the what
+- Note what each \`context.*\` read and write is for if it isn't self-evident from the variable name
+- Do not rewrite or restructure the code — only add comments
+
+\`\`\`javascript
+${code}
+\`\`\``;
+
+  navigator.clipboard.writeText(prompt).then(() => {
+    const notice = document.getElementById('doc-notice');
+    notice.classList.add('visible');
+    setTimeout(() => notice.classList.remove('visible'), 5000);
+  });
 }
 
 // ─── theme toggle ─────────────────────────────────────────────────────────────

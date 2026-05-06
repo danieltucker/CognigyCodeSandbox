@@ -10,6 +10,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/ace.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/mode-javascript.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/mode-json.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/ext-searchbox.min.js"></script>
+<script src="https://unpkg.com/prettier@3.3.3/standalone.js"></script>
+<script src="https://unpkg.com/prettier@3.3.3/plugins/estree.js"></script>
+<script src="https://unpkg.com/prettier@3.3.3/plugins/babel.js"></script>
 <style>
   :root {
     /* ── Cognigy dark theme ─────────────────────────────────── */
@@ -61,23 +65,6 @@
   }
 
   /* ── theme toggle ── */
-  .theme-toggle {
-    background: var(--surface2);
-    border: 1px solid var(--border2);
-    border-radius: 20px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 12px;
-    transition: all 0.2s;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--text2);
-  }
-  .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
-  .theme-toggle .icon { font-size: 13px; line-height: 1; }
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
@@ -208,11 +195,18 @@
   .pane-header {
     display: flex;
     align-items: center;
-    gap: 8px;
+    flex-wrap: wrap;
+    gap: 6px;
     padding: 10px 16px;
     border-bottom: 1px solid var(--border);
     background: var(--surface);
     flex-shrink: 0;
+  }
+  .btn-divider {
+    width: 1px;
+    align-self: stretch;
+    background: var(--border2);
+    margin: 2px 2px;
   }
   .pane-label {
     font-family: 'JetBrains Mono', monospace;
@@ -296,6 +290,98 @@
     flex-shrink: 0;
   }
   .panel-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .panel-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-glow);
+  }
+  .panel-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .code-llm-toolbar {
+    position: absolute;
+    bottom: 12px;
+    right: 14px;
+    display: flex;
+    gap: 6px;
+    padding: 5px 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 18px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18);
+    z-index: 5;
+    backdrop-filter: blur(6px);
+  }
+  .code-llm-toolbar .panel-btn {
+    border-color: transparent;
+  }
+  .code-llm-toolbar .panel-btn:hover {
+    border-color: var(--accent);
+  }
+
+  .footer-bar {
+    position: fixed;
+    bottom: 14px;
+    right: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 24px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+    z-index: 50;
+    backdrop-filter: blur(6px);
+  }
+  .footer-bar .footer-divider {
+    width: 1px;
+    align-self: stretch;
+    background: var(--border2);
+  }
+  .footer-btn {
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    color: var(--text2);
+    cursor: pointer;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1;
+    transition: all 0.15s;
+  }
+  .footer-btn:hover { color: var(--accent); background: var(--accent-glow); }
+  .footer-btn:disabled { opacity: 0.35; cursor: not-allowed; background: transparent; color: var(--text3); }
+  .font-size-display {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+    min-width: 22px;
+    text-align: center;
+  }
+  .footer-theme {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    transition: all 0.15s;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text2);
+  }
+  .footer-theme:hover { color: var(--accent); background: var(--accent-glow); }
+  .footer-theme .icon { font-size: 12px; line-height: 1; }
 
   .doc-notice {
     display: none;
@@ -1181,10 +1267,6 @@
   <div class="app-title">Cognigy Code Node Sandbox <span>// NiCE ProServ</span></div>
   <div class="topbar-spacer"></div>
   <span id="status-pill" class="status-pill idle">Idle</span>
-  <button class="theme-toggle" onclick="toggleTheme()" title="Toggle day/night theme">
-    <span class="icon">🌙</span>
-    <span id="theme-label">Night</span>
-  </button>
   <button class="saves-btn" onclick="openSavesModal()">
     <svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 3a1 1 0 011-1h7.5L13 4.5V13a1 1 0 01-1 1H3a1 1 0 01-1-1V3z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 2v3.5H5V2M5 9h6M5 12h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
     Saves
@@ -1206,8 +1288,11 @@
     <div class="pane-header">
       <div class="pane-icon purple"></div>
       <span class="pane-label">Code Node</span>
-      <button class="panel-btn" id="copy-doc-btn" onclick="copyDocPrompt()" title="Copy a prompt to document this code with an LLM">Document with LLM</button>
-      <button class="panel-btn" id="copy-review-btn" onclick="copyReviewPrompt()" title="Copy a prompt to review this code with an LLM">Review with LLM</button>
+      <button class="panel-btn" id="wrap-btn" onclick="toggleWordWrap()" title="Toggle word wrap (⌥Z)">Wrap</button>
+      <button class="panel-btn" onclick="editorFind()" title="Find in code (⌘F)">Find</button>
+      <button class="panel-btn" onclick="editorReplace()" title="Find and replace (⌘⌥F)">Replace</button>
+      <button class="panel-btn" onclick="formatCode()" title="Format code with Prettier">Format</button>
+      <button class="panel-btn" id="fold-btn" onclick="toggleCodeFold()" title="Collapse all functions and blocks">Fold</button>
     </div>
     <div id="doc-notice" class="doc-notice">
       <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="1.5,6 4.5,9 10.5,3"/></svg>
@@ -1219,6 +1304,10 @@
     </div>
     <div class="pane-body">
       <div id="code-editor" class="ace-editor-container"></div>
+      <div class="code-llm-toolbar">
+        <button class="panel-btn" id="copy-doc-btn" onclick="copyDocPrompt()" title="Copy a prompt to document this code with an LLM">Document with LLM</button>
+        <button class="panel-btn" id="copy-review-btn" onclick="copyReviewPrompt()" title="Copy a prompt to review this code with an LLM">Review with LLM</button>
+      </div>
     </div>
   </div>
 
@@ -1237,6 +1326,7 @@
         <div class="json-section-header">
           <span class="json-section-label">input</span>
           <span class="json-err" id="err-input">invalid json</span>
+          <button class="panel-btn" onclick="formatJson('json-input')" title="Reformat the JSON with proper indentation">Format</button>
           <button class="panel-btn" onclick="generateSessionIds()" title="Generate UUIDs for userId and sessionId if missing or null">Gen IDs</button>
         </div>
         <div id="json-input" class="ace-editor-container"></div>
@@ -1247,6 +1337,7 @@
         <div class="json-section-header resizable" id="context-header">
           <span class="json-section-label">context</span>
           <span class="json-err" id="err-context">invalid json</span>
+          <button class="panel-btn" onclick="formatJson('json-context')" title="Reformat the JSON with proper indentation">Format</button>
           <div class="resize-grip"><span></span><span></span><span></span></div>
         </div>
         <div id="json-context" class="ace-editor-container"></div>
@@ -1257,6 +1348,7 @@
         <div class="json-section-header resizable" id="profile-header">
           <span class="json-section-label">profile</span>
           <span class="json-err" id="err-profile">invalid json</span>
+          <button class="panel-btn" onclick="formatJson('json-profile')" title="Reformat the JSON with proper indentation">Format</button>
           <div class="resize-grip"><span></span><span></span><span></span></div>
         </div>
         <div id="json-profile" class="ace-editor-container"></div>
@@ -1343,6 +1435,18 @@
     </div>
     <div class="saves-modal-body" id="saves-modal-body"></div>
   </div>
+</div>
+
+<!-- FOOTER BAR (font size + theme) -->
+<div class="footer-bar" id="footer-bar">
+  <button class="footer-btn" id="font-down-btn" onclick="changeFontSize(-1)" title="Decrease font size">−</button>
+  <span class="font-size-display" id="font-size-display">12</span>
+  <button class="footer-btn" id="font-up-btn" onclick="changeFontSize(1)" title="Increase font size">+</button>
+  <span class="footer-divider"></span>
+  <button class="footer-theme" onclick="toggleTheme()" title="Toggle day/night theme">
+    <span class="icon">🌙</span>
+    <span id="theme-label">Night</span>
+  </button>
 </div>
 
 <!-- PASTE DEPENDENCY MODAL -->
@@ -2037,6 +2141,126 @@ ${code}
   });
 }
 
+// ─── editor utilities (wrap / find / replace / format / fold) ────────────────
+
+const _wrapKey = 'sandbox_v1_wrap';
+let   _wrapOn  = localStorage.getItem(_wrapKey) === '1';
+let   _foldOn  = false;
+
+function _applyWrap() {
+  const ed = _editors['code-editor'];
+  if (!ed) return;
+  ed.session.setUseWrapMode(_wrapOn);
+  document.getElementById('wrap-btn').classList.toggle('active', _wrapOn);
+}
+
+function toggleWordWrap() {
+  _wrapOn = !_wrapOn;
+  localStorage.setItem(_wrapKey, _wrapOn ? '1' : '0');
+  _applyWrap();
+}
+
+function editorFind() {
+  const ed = _editors['code-editor'];
+  if (ed) { ed.focus(); ed.execCommand('find'); }
+}
+
+function editorReplace() {
+  const ed = _editors['code-editor'];
+  if (ed) { ed.focus(); ed.execCommand('replace'); }
+}
+
+async function formatCode() {
+  const ed = _editors['code-editor'];
+  if (!ed) return;
+  const code = ed.getValue();
+  if (!code.trim()) return;
+
+  if (typeof prettier === 'undefined' || !prettier.format) {
+    setStatus('error', 'Formatter still loading — try again in a moment');
+    return;
+  }
+
+  try {
+    const formatted = await prettier.format(code, {
+      parser: 'babel',
+      plugins: prettierPlugins,
+      semi: true,
+      singleQuote: false,
+      tabWidth: 2,
+      printWidth: 100,
+    });
+    const cursor = ed.getCursorPosition();
+    ed.setValue(formatted, -1);
+    ed.moveCursorToPosition(cursor);
+    ed.clearSelection();
+  } catch (e) {
+    setStatus('error', 'Format failed: ' + (e.message || 'syntax error'));
+  }
+}
+
+function toggleCodeFold() {
+  const ed = _editors['code-editor'];
+  if (!ed) return;
+  if (_foldOn) {
+    ed.session.unfold();
+    _foldOn = false;
+  } else {
+    ed.session.foldAll();
+    _foldOn = true;
+  }
+  document.getElementById('fold-btn').classList.toggle('active', _foldOn);
+}
+
+function formatJson(panelId) {
+  const ed = _editors[panelId];
+  if (!ed) return;
+  const raw = ed.getValue();
+  if (!raw.trim()) return;
+  try {
+    const parsed = JSON.parse(raw);
+    ed.setValue(JSON.stringify(parsed, null, 2), -1);
+    ed.clearSelection();
+  } catch (e) {
+    setStatus('error', `${panelId.replace('json-', '')} is not valid JSON`);
+  }
+}
+
+// ─── font size control ───────────────────────────────────────────────────────
+
+const _fontKey      = 'sandbox_v1_fontsize';
+const _fontMin      = 9;
+const _fontMax      = 22;
+const _fontDefault  = 12;
+let   _fontSize     = parseInt(localStorage.getItem(_fontKey), 10);
+if (isNaN(_fontSize) || _fontSize < _fontMin || _fontSize > _fontMax) _fontSize = _fontDefault;
+
+function _applyFontSize() {
+  Object.values(_editors).forEach(e => e.setFontSize(_fontSize + 'px'));
+  document.getElementById('font-size-display').textContent = String(_fontSize);
+  document.getElementById('font-down-btn').disabled = _fontSize <= _fontMin;
+  document.getElementById('font-up-btn').disabled   = _fontSize >= _fontMax;
+}
+
+function changeFontSize(delta) {
+  const next = Math.min(_fontMax, Math.max(_fontMin, _fontSize + delta));
+  if (next === _fontSize) return;
+  _fontSize = next;
+  localStorage.setItem(_fontKey, String(_fontSize));
+  _applyFontSize();
+}
+
+// Initialise wrap, fold, and font size on load
+_applyWrap();
+_applyFontSize();
+
+// Option+Z (Mac) / Alt+Z (Win/Linux) — match VS Code's word wrap shortcut
+_editors['code-editor'].commands.addCommand({
+  name: 'toggleWordWrap',
+  bindKey: { mac: 'Alt-Z', win: 'Alt-Z' },
+  exec: toggleWordWrap,
+});
+
 // ─── theme toggle ─────────────────────────────────────────────────────────────
 
 const _themeIcons  = { dark: '🌙', light: '☀️', auto: '◑' };
@@ -2050,7 +2274,7 @@ function _applyTheme(mode) {
   document.documentElement.classList.toggle('light', !dark);
   const aceTheme = dark ? 'ace/theme/cognigy_dark' : 'ace/theme/cognigy_light';
   Object.values(_editors).forEach(e => e.setTheme(aceTheme));
-  document.querySelector('.theme-toggle .icon').textContent = _themeIcons[mode];
+  document.querySelector('.footer-theme .icon').textContent = _themeIcons[mode];
   document.getElementById('theme-label').textContent = _themeLabels[mode];
 }
 

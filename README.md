@@ -38,6 +38,22 @@ The Output panel updates immediately.
 
 ---
 
+## Editor tools
+
+The Code Node panel header has buttons for common editor actions:
+
+| Button | What it does |
+|---|---|
+| **Wrap** | Toggles word wrap. Also bound to `⌥Z` on Mac / `Alt+Z` on Windows, matching VS Code. The setting persists across sessions. |
+| **Find** | Opens the find bar (`⌘F` / `Ctrl+F`). |
+| **Replace** | Opens find and replace (`⌘⌥F` / `Ctrl+H`). |
+| **Format** | Reformats the JavaScript with consistent indentation, spacing, and quote style (powered by Prettier). |
+| **Fold** | Collapses all functions and blocks. Click again to expand. |
+
+The data panels each have a **Format** button as well, which parses the JSON and re-stringifies it with proper indentation - useful when you've pasted in a large unformatted webhook response.
+
+---
+
 ## Setting up your data
 
 The **Data** panel has three sections, each representing a different part of the Cognigy conversation state.
@@ -160,7 +176,7 @@ When you paste code into the editor, the sandbox scans it for any `context.*`, `
 
 ## LLM tools
 
-The Code Node panel header has two buttons that build ready-to-use prompts for use with any LLM - claude.ai, Microsoft Copilot, or similar. Clicking either button copies the prompt (with your code included) to the clipboard and shows a confirmation message below the header. Paste it into your LLM of choice to get back results immediately.
+The Code Node panel has two buttons - **Document with LLM** and **Review with LLM** - in a small floating bar at the bottom right of the editor. Each builds a ready-to-use prompt for use with any LLM (claude.ai, Microsoft Copilot, or similar). Clicking either button copies the prompt (with your code included) to the clipboard and shows a confirmation message below the header. Paste it into your LLM of choice to get back results immediately.
 
 No API key or account is needed in the sandbox - it handles the prompt building only.
 
@@ -190,7 +206,10 @@ Each finding includes what the issue is, where it appears, and what the recommen
 
 **Clear** - resets the code editor and all data panels back to empty. Your saved code and scenarios are not affected.
 
-**Theme** - the toggle in the top bar cycles between Night, Day, and Auto (which follows your system setting). The choice persists across sessions.
+**Display settings** - a floating bar at the bottom right of the screen contains:
+
+- **Font size** - `−` and `+` buttons adjust the font size for all editors (range 9-22px). The chosen size persists across sessions.
+- **Theme toggle** - cycles between Night, Day, and Auto (Auto follows your system setting). The choice persists across sessions.
 
 ---
 

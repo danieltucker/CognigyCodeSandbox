@@ -20,9 +20,19 @@ The encoding would use URL-safe base64 or LZ-string compression to keep URLs rea
 
 ## Completed
 
+### Editor tools and display settings
+
+**Code Node** — toolbar buttons in the panel header for word wrap (also bound to `⌥Z` to match VS Code), find, find and replace, format (via Prettier), and code folding. Word wrap state persists across sessions.
+
+**Data panels** — each section (input, context, profile) has a **Format** button that parses and re-stringifies the JSON with proper indentation, useful for cleaning up pasted webhook responses or unformatted payloads.
+
+**Display settings** — a floating bar at the bottom right of the screen with font size controls (range 9–22px, applied to all editors) and the theme toggle (moved from the top bar). Both font size and theme persist across sessions.
+
+---
+
 ### LLM prompt tools
 
-Two buttons in the Code Node panel header — **Document with LLM** and **Review with LLM** — each build a ready-to-use prompt with the current code embedded and copy it to the clipboard. Paste into any LLM (claude.ai, Copilot, etc.) to get results immediately. No API key or direct LLM connection required.
+Two buttons — **Document with LLM** and **Review with LLM** — in a floating bar at the bottom right of the Code Node editor. Each builds a ready-to-use prompt with the current code embedded and copies it to the clipboard. Paste into any LLM (claude.ai, Copilot, etc.) to get results immediately. No API key or direct LLM connection required.
 
 **Document with LLM** returns the code unchanged in structure with a plain-English summary comment block at the top and concise inline comments added where the logic is non-obvious.
 

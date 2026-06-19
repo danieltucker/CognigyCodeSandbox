@@ -863,6 +863,50 @@
   }
   .modal-btn-add:hover { opacity: 0.88; box-shadow: 0 0 20px var(--accent-glow); }
 
+  /* ── share (import / export) modal ── */
+  .share-section { display: flex; flex-direction: column; gap: 8px; }
+  .share-section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text3);
+  }
+  .share-textarea {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 78px;
+    resize: vertical;
+    background: var(--surface3);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    line-height: 1.5;
+    padding: 9px 11px;
+    word-break: break-all;
+  }
+  .share-textarea:focus { outline: none; border-color: var(--accent); }
+  .share-textarea::placeholder { color: var(--text3); }
+  .share-row { display: flex; align-items: center; gap: 12px; }
+  .share-copied {
+    display: none;
+    color: var(--green);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.04em;
+  }
+  .share-copied.visible { display: inline; }
+  .share-divider { height: 1px; background: var(--border2); margin: 16px 0; }
+  .share-import-err {
+    color: var(--red, #ff5d5d);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.03em;
+    min-height: 13px;
+  }
+
   /* ── saves button (topbar) ── */
   .saves-btn {
     background: transparent;
@@ -1271,6 +1315,14 @@
     <svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 3a1 1 0 011-1h7.5L13 4.5V13a1 1 0 01-1 1H3a1 1 0 01-1-1V3z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 2v3.5H5V2M5 9h6M5 12h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
     Saves
   </button>
+  <button class="saves-btn" onclick="openExportModal()" title="Export your workspace as a shareable string">
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 10V2M8 2L5 5M8 2l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 9.5V13a1 1 0 001 1h8a1 1 0 001-1V9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    Export
+  </button>
+  <button class="saves-btn" onclick="openImportModal()" title="Import a workspace from a shared string">
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 2v8M8 10L5 7m3 3l3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 9.5V13a1 1 0 001 1h8a1 1 0 001-1V9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    Import
+  </button>
   <button class="clear-btn" onclick="clearAll()">Clear</button>
   <button class="run-btn" onclick="runCode()">
     <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1464,6 +1516,40 @@
       <span class="modal-footer-hint">Values will be added as <code style="color:var(--accent);background:var(--surface3);padding:1px 4px;border-radius:3px;font-size:9px">null</code> — edit before running.</span>
       <button class="modal-btn-dismiss" onclick="dismissPasteModal()">Dismiss</button>
       <button class="modal-btn-add" onclick="autoAddDependencies()">Auto-Add All</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHARE (IMPORT / EXPORT) MODAL -->
+<div id="share-modal-overlay" class="modal-overlay" style="display:none" onclick="handleShareOverlayClick(event)">
+  <div class="modal-box" id="share-modal-box">
+    <div class="modal-header">
+      <div class="modal-title">
+        <span class="modal-title-dot"></span>
+        Share Workspace
+      </div>
+      <div class="modal-subtitle">Export your code, data panels and assertions as a single string to send a coworker — or paste one in to load it here.</div>
+    </div>
+    <div class="modal-body">
+      <div class="share-section">
+        <div class="share-section-label">Export — copy and send this string</div>
+        <textarea id="share-export-text" class="share-textarea" readonly onclick="this.select()"></textarea>
+        <div class="share-row">
+          <button class="modal-btn-add" onclick="copyShareToken()">Copy to clipboard</button>
+          <span id="share-copied" class="share-copied">Copied ✓</span>
+        </div>
+      </div>
+      <div class="share-divider"></div>
+      <div class="share-section">
+        <div class="share-section-label">Import — paste a share string</div>
+        <textarea id="share-import-text" class="share-textarea" placeholder="Paste a COGSBX… string here…"></textarea>
+        <div id="share-import-err" class="share-import-err"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <span class="modal-footer-hint">Importing replaces your current workspace.</span>
+      <button class="modal-btn-dismiss" onclick="closeShareModal()">Close</button>
+      <button class="modal-btn-add" onclick="importShare()">Import &amp; Replace</button>
     </div>
   </div>
 </div>
@@ -2139,6 +2225,125 @@ ${code}
     notice.classList.add('visible');
     setTimeout(() => notice.classList.remove('visible'), 5000);
   });
+}
+
+// ─── share: import / export workspace ─────────────────────────────────────────
+
+const _SHARE_PREFIX = 'COGSBX1.';
+
+// Unicode-safe base64 (handles non-ASCII in code/data)
+function _b64EncodeUnicode(str) { return btoa(unescape(encodeURIComponent(str))); }
+function _b64DecodeUnicode(str) { return decodeURIComponent(escape(atob(str))); }
+
+function _hasData(id) {
+  const v = getEditorValue(id).trim();
+  return v && v !== '{}';
+}
+
+function _buildShareToken() {
+  const envelope = {
+    v: 1,
+    exportedAt: new Date().toISOString(),
+    code:       getEditorValue('code-editor'),
+    input:      getEditorValue('json-input'),
+    context:    getEditorValue('json-context'),
+    profile:    getEditorValue('json-profile'),
+    assertions: _loadAssertions()
+  };
+  return _SHARE_PREFIX + _b64EncodeUnicode(JSON.stringify(envelope));
+}
+
+function _resetShareModal() {
+  document.getElementById('share-export-text').value = _buildShareToken();
+  document.getElementById('share-import-text').value = '';
+  document.getElementById('share-import-err').textContent = '';
+  document.getElementById('share-copied').classList.remove('visible');
+  document.getElementById('share-modal-overlay').style.display = 'flex';
+}
+
+function openExportModal() {
+  _resetShareModal();
+  copyShareToken(); // auto-copy on open for one-click sharing
+  document.getElementById('share-export-text').select();
+}
+
+function openImportModal() {
+  _resetShareModal();
+  setTimeout(() => document.getElementById('share-import-text').focus(), 50);
+}
+
+function closeShareModal() {
+  document.getElementById('share-modal-overlay').style.display = 'none';
+}
+
+function handleShareOverlayClick(e) {
+  if (e.target === document.getElementById('share-modal-overlay')) closeShareModal();
+}
+
+function copyShareToken() {
+  const text = document.getElementById('share-export-text').value;
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    const c = document.getElementById('share-copied');
+    c.classList.add('visible');
+    setTimeout(() => c.classList.remove('visible'), 2500);
+  }).catch(() => {});
+}
+
+function importShare() {
+  const errEl = document.getElementById('share-import-err');
+  const raw = (document.getElementById('share-import-text').value || '').trim();
+  errEl.textContent = '';
+
+  if (!raw) { errEl.textContent = 'Paste a share string first.'; return; }
+  if (raw.indexOf(_SHARE_PREFIX) !== 0) {
+    errEl.textContent = 'That doesn’t look like a sandbox share string (it should start with COGSBX1.).';
+    return;
+  }
+
+  let envelope;
+  try {
+    envelope = JSON.parse(_b64DecodeUnicode(raw.slice(_SHARE_PREFIX.length)));
+  } catch (e) {
+    errEl.textContent = 'Could not read that share string — it may be incomplete or corrupted.';
+    return;
+  }
+  if (!envelope || typeof envelope !== 'object' || envelope.v !== 1) {
+    errEl.textContent = 'Unsupported share string version. Ask your coworker to re-export.';
+    return;
+  }
+
+  // Guard against clobbering unsaved work
+  const dirty = getEditorValue('code-editor').trim() ||
+                _hasData('json-input') || _hasData('json-context') || _hasData('json-profile') ||
+                _loadAssertions().length;
+  if (dirty && !confirm('Importing will replace your current code, data and assertions. Continue?')) return;
+
+  // Apply (raw strings preserved exactly — no reparse/reformat)
+  setEditorValue('code-editor', typeof envelope.code    === 'string' ? envelope.code    : '');
+  setEditorValue('json-input',   typeof envelope.input   === 'string' ? envelope.input   : '{}');
+  setEditorValue('json-context', typeof envelope.context === 'string' ? envelope.context : '{}');
+  setEditorValue('json-profile', typeof envelope.profile === 'string' ? envelope.profile : '{}');
+
+  const assertions = Array.isArray(envelope.assertions)
+    ? envelope.assertions.filter(a => typeof a === 'string')
+    : [];
+  _persistAssertions(assertions);
+  _editingAssertionIdx = null;
+  renderAssertions(null);
+
+  // Refresh JSON validity indicators
+  parseJson('json-input',   'err-input');
+  parseJson('json-context', 'err-context');
+  parseJson('json-profile', 'err-profile');
+
+  // Reset output panel (mirror clearAll)
+  document.getElementById('output-empty').style.display = 'flex';
+  document.getElementById('output-content').style.display = 'none';
+  document.getElementById('ctx-write-count').style.display = 'none';
+  setStatus('idle', 'Idle');
+
+  closeShareModal();
 }
 
 // ─── editor utilities (wrap / find / replace / format / fold) ────────────────
